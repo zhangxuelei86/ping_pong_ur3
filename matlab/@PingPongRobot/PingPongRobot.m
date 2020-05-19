@@ -56,7 +56,7 @@ classdef PingPongRobot < handle
             RobotLinks(7) = Link([0  0.082        0        0       0]);
 
             % Incorporate joint limits
-            RobotLinks(1).qlim = [-0.4 0.4];
+            RobotLinks(1).qlim = [-0.8 0];
             RobotLinks(2).qlim = deg2rad([-360 360]);
             RobotLinks(3).qlim = deg2rad([-360 360]);
             RobotLinks(4).qlim = deg2rad([-360 360]);
@@ -67,7 +67,7 @@ classdef PingPongRobot < handle
             self.model = SerialLink(RobotLinks,'name',self.name);
             
             % Rotate PingPong robot to the correct orientation
-            self.model.base = self.model.base * trotx(pi/2) * troty(pi/2);
+            self.model.base = transl(0.4,0,0) * self.model.base * trotx(pi/2) * troty(pi/2);
 
         end
         

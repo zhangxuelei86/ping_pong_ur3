@@ -3,7 +3,7 @@
 %UR5
 % The definition of the class has been modifies to suit the purpose of our
 % spedific applictaion
-% Calling this class creates an instance of an object of this class 
+% This cll
 classdef PingPongRobot < handle
     properties
         %< Robot model
@@ -47,24 +47,24 @@ classdef PingPongRobot < handle
         function GetPingPongRobot ( self )
 
             % Create the UR3 model mounted on a linear rail
-            RobotLinks(1) = Link([pi  0            0        pi/2  1]); % PRISMATIC Link
-            RobotLinks(2) = Link([0  0.152+0.03   0        pi/2   0]);
-            RobotLinks(3) = Link([0  0.12         -0.244   0      0]);
-            RobotLinks(4) = Link([0  -0.093       -0.213   0      0]);
-            RobotLinks(5) = Link([0  0.083        0        pi/2   0]);
-            RobotLinks(6) = Link([0  0.083        0        -pi/2	0]);
-            RobotLinks(7) = Link([0  0.082        0        0       0]);
+            L(1) = Link([pi     0       0       pi/2    1]); % PRISMATIC Link
+            L(2) = Link([0      0.152+0.03  0       pi/2   0]);
+            L(3) = Link([0      0.12  -0.244   0     0]);
+            L(4) = Link([0      -0.093  -0.213 0      0]);
+            L(5) = Link([0      0.083   0       pi/2   0]);
+            L(6) = Link([0      0.083   0       -pi/2	0]);
+            L(7) = Link([0      0.082      0       0       0]);
 
             % Incorporate joint limits
-            RobotLinks(1).qlim = [-0.4 0.4];
-            RobotLinks(2).qlim = deg2rad([-360 360]);
-            RobotLinks(3).qlim = deg2rad([-360 360]);
-            RobotLinks(4).qlim = deg2rad([-360 360]);
-            RobotLinks(5).qlim = deg2rad([-360 360]);
-            RobotLinks(6).qlim = deg2rad([-360 360]);
-            RobotLinks(7).qlim = deg2rad([-360 360]);
+            L(1).qlim = [-0.4 0.4];
+            L(2).qlim = deg2rad([-360 360]);
+            L(3).qlim = deg2rad([-360 360]);
+            L(4).qlim = deg2rad([-360 360]);
+            L(5).qlim = deg2rad([-360 360]);
+            L(6).qlim = deg2rad([-360 360]);
+            L(7).qlim = deg2rad([-360 360]);
 
-            self.model = SerialLink(RobotLinks,'name',self.name);
+            self.model = SerialLink(L,'name',self.name);
             
             % Rotate PingPong robot to the correct orientation
             self.model.base = self.model.base * trotx(pi/2) * troty(pi/2);
@@ -76,7 +76,7 @@ classdef PingPongRobot < handle
         % colour them in if data is available
         function PlotAndColourRobot ( self )
             for linkIndex = 0:self.model.n
-                [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['LinUR3Link',num2str(linkIndex),'.ply'],'tri');
+                [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['LinUR3Link',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 self.model.faces{linkIndex+1} = faceData;
                 self.model.points{linkIndex+1} = vertexData;
             end

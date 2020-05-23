@@ -45,8 +45,12 @@ classdef EnvironmentComponent < handle
             
             if isempty(findobj(get(gca,'Children'),'Type','Light'))
                 camlight
-            end  
+            end
             
+            if ~ishold
+                hold on;
+            end
+                        
         end
         
         function UpdatePose(obj, pose)

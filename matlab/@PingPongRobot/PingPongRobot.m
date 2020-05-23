@@ -103,5 +103,25 @@ classdef PingPongRobot < handle
                 end
             end
         end
+        
+        %% GetRobotLinksTranform
+        % Given the joint states of the UR3 robot
+        % The transform of the base and all the links of the robot is calculated
+        function robotLinksTransforms = GetRobotLinksTransforms(self, q)
+            if nargin < 2
+                q = self.model.getpos();
+            end
+
+            tr = zeros(4,4,self.model.n+1);
+            tr(:,:,1) = self.model.base;
+            L = self.model.links;
+            for i = 1 : self.model.n
+                tr(:,:,i+1) = tr(:,:,i) * self.model.links(i).A(q(i));
+            end
+
+            robotLinksTransforms = tr;
+
+        end
+        
     end
 end

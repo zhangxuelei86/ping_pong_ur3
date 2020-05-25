@@ -1,0 +1,143 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class RobotJoint : MonoBehaviour
+{
+    // FIXED
+    public float offset = 0.0f;
+    protected float _limit_min = -45;
+    protected float _limit_max = 45;
+    protected float _speed_gain = 1.0f;
+    protected bool _continuous = false;
+
+    // CONTROL STATUS
+    protected float _position = 0;
+    protected float _speed = 0;
+    protected float _desired_position = 0;
+    protected float _desired_velocity = 0;
+    protected bool _pid_control = false;
+
+    // POSITION PID TUNING
+    protected float _pos_pid_kp = 0;
+    protected float _pos_pid_ki = 0;
+    protected float _pos_pid_kd = 0;
+    protected float _pos_pid_cur_err = 0;
+    protected float _pos_pid_sum_err = 0;
+    protected float _pos_pid_pre_err = 0;
+
+    // WATCHDOG
+    protected float last_command_time;
+    protected float watch_dog_timeout = 1.0f; //secs
+
+    public bool setLimits(float min, float max) {
+        _limit_min = min + offset;
+        _limit_max = max + offset;
+        return true;
+    }
+
+    public bool setGain(float gain) {
+        _speed_gain = gain;
+        return true;
+    }
+
+    public bool setSpeed(float speed) {
+        _pid_control = false;
+        _speed = speed;
+        return true;
+    }
+
+    public float getSpeed() {
+        return _speed;
+    }
+
+    public bool setDestination(float desired_position, float desired_velocity)
+    {
+        _desired_position = desired_position + offset;
+        _desired_velocity = desired_velocity;
+        _pos_pid_cur_err = 0;
+        _pos_pid_pre_err = 0;
+        _pos_pid_sum_err = 0;
+        last_command_time = Time.fixedTime;
+        _pid_control = true;
+        return true;
+    }
+
+    public bool setDesiredPosition(float desired_position)
+    {
+        // do nothing, for now
+        return true;
+    }
+
+    public float getPosition()
+    {
+        return _position;
+    }
+
+    public bool setPosition(float position)
+    {
+        _position = position;
+        return true;
+    }
+
+    public bool tunePosPID(float kp, float ki, float kd) {
+        _pos_pid_kp = kp;
+        _pos_pid_ki = ki;
+        _pos_pid_kd = kd;
+        return true;
+    }
+
+    protected void watchDogCheck() {
+        if(_pid_control) {
+            if(Time.fixedTime - last_command_time > watch_dog_timeout) {
+                setSpeed(0.0f); // also makes _pid_control = false
+            }
+        }
+    }
+
+    protected void updatePosition() {
+        watchDogCheck();
+
+        float temp_position;
+        if(_pid_control) {
+            _speed = _desired_velocity;
+            _pos_pid_cur_err = _desired_position - _position;
+            _pos_pid_sum_err += _pos_pid_cur_err;
+            float _pos_pid_dif_err = _pos_pid_cur_err - _pos_pid_pre_err;
+            
+            // Position PID Calculation
+            // Calculate speed again
+            _speed += _pos_pid_kp*_pos_pid_cur_err + _pos_pid_ki*_pos_pid_sum_err*Time.fixedDeltaTime + _pos_pid_kd*(_pos_pid_dif_err/Time.fixedDeltaTime);
+            _pos_pid_pre_err = _pos_pid_cur_err;
+
+            temp_position = _position + _speed*Time.fixedDeltaTime;
+        }
+        else {
+            temp_position = _position + _speed*_speed_gain*Time.fixedDeltaTime;
+        }
+
+        if(temp_position >= _limit_max) {
+            if(_continuous) {
+                temp_position = _limit_min + (temp_position - _limit_max);
+            }
+            else temp_position = _limit_max;
+        }
+        else if(temp_position <= _limit_min) {
+            if(_continuous) {
+                temp_position = _limit_max - (_limit_min - temp_position);
+            }
+            else temp_position = _limit_min;
+        }
+        _position = temp_position;
+    }
+
+    void Start()
+    {
+        
+    }
+
+    void Update()
+    {
+        
+    }
+}

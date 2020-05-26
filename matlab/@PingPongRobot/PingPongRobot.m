@@ -28,7 +28,7 @@ classdef PingPongRobot < handle
             if nargin < 1
                 % Create a unique name (ms timestamp after 1ms pause)
                 pause(0.001);
-                name = ['PingPongRobot_',datestr(now,'yyyymmddTHHMMSSFFF')];
+                name = ['PingPongRobot'];
             end
             
             if nargin > 1

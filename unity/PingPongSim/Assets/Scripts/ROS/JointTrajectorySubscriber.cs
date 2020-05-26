@@ -9,10 +9,10 @@ namespace RosSharp.RosBridgeClient
     public class JointTrajectorySubscriber : UnitySubscriber<MessageTypes.Trajectory.JointTrajectory>
     {
 
-        public UR3JointTrajectoryController controller;
+        public Robot.JointTrajectoryController controller;
 
         private MessageTypes.Trajectory.JointTrajectory mostRecentMessage;
-        private UR3JointTrajectory trajectory = new UR3JointTrajectory();
+        private Robot.JointTrajectory trajectory = new Robot.JointTrajectory();
 
         private bool isMessageReceived;
 
@@ -39,14 +39,23 @@ namespace RosSharp.RosBridgeClient
         private void ProcessMessage()
         {
             trajectory.points.Clear();
-            foreach (MessageTypes.Trajectory.JointTrajectoryPoint point in mostRecentMessage.points) {
-                UR3JointTrajectoryPoint ur3_point = new UR3JointTrajectoryPoint();
-                for(int i = 0; i < UR3JointTrajectoryPoint.joints_num; i++) {
-                    ur3_point.positions.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.positions[i]));
-                    ur3_point.velocities.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.velocities[i]));
+            trajectory.joint_names.Clear();
+            trajectory.start_time = Time.fixedTime;
+
+            foreach (string joint in mostRecentMessage.joint_names)
+            {
+                trajectory.joint_names.Add(joint);
+            }
+
+            foreach (MessageTypes.Trajectory.JointTrajectoryPoint point in mostRecentMessage.points)
+            {
+                Robot.JointTrajectoryPoint joint_traj_point = new Robot.JointTrajectoryPoint();
+                for(int i = 0; i < trajectory.joint_names.Count; i++) {
+                    joint_traj_point.positions.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.positions[i]));
+                    joint_traj_point.velocities.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.velocities[i]));
                 }
-                ur3_point.time_from_start = point.time_from_start.nsecs/1000;
-                trajectory.points.Add(ur3_point);
+                joint_traj_point.time_from_start = point.time_from_start.nsecs/1000;
+                trajectory.points.Add(joint_traj_point);
             }
             controller.followTrajectory(trajectory);
         }

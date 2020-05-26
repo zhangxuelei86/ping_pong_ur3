@@ -7,7 +7,17 @@ classdef RobotController < handle
     properties (SetAccess = private)
         robot;
         
+<<<<<<< Updated upstream
         isKillRobot = false;
+=======
+        isKillRobot = 0;
+        
+        trajectory;
+    end
+    
+    properties
+        currentJointState;
+>>>>>>> Stashed changes
     end
     
     methods
@@ -16,6 +26,7 @@ classdef RobotController < handle
             self.robot = robot;
         end
         
+<<<<<<< Updated upstream
         %% StopRobot
         % This function is sets the flag of isKillRobot to 0
         % This function is called on the event of any collision and unwanted
@@ -58,7 +69,19 @@ classdef RobotController < handle
                     end
                 end
                 
+=======
+        function StopRobot ( self )
+            if self.isKillRobot == 1
+                self.isKillRobot = 0;
+>>>>>>> Stashed changes
             end
+            
+            self.trajectory = self.currentJointState;
+        end
+        
+        function SetRobotJointTrajectory(self, trajectory)
+            
+            self.trajectory = trajectory;
         end
         
     end

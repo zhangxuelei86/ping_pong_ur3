@@ -114,7 +114,6 @@ classdef PingPongRobot < handle
 
             tr = zeros(4,4,self.model.n+1);
             tr(:,:,1) = self.model.base;
-            L = self.model.links;
             for i = 1 : self.model.n
                 tr(:,:,i+1) = tr(:,:,i) * self.model.links(i).A(q(i));
             end

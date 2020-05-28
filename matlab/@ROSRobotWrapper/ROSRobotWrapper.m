@@ -2,10 +2,7 @@ classdef ROSRobotWrapper < handle
     %ROSROBOTWRAPPER Wraps around PingPongRobot, communicates with Unity
     %via ROS to subscribe to joint angles, origin (linear rail) transform
     
-    properties
-        rosMasterURI;
-        rosIP;
-        
+    properties        
         robot; % Ping Pong Robot
         
         jointStateTopic;
@@ -18,13 +15,12 @@ classdef ROSRobotWrapper < handle
     end
     
     methods
-        function self = ROSRobotWrapper(robot)
+        function self = ROSRobotWrapper(robot, rosMasterURI, rosIP)
             %ROSROBOTWRAPPER Construct an instance of this class
             %   Initialises default properties
             self.robot = robot;
             
-            self.rosMasterURI = 'http://192.168.1.118:11311'; % default Ubuntu PC local IP
-            self.rosIP = '192.168.1.116'; % default Windows PC (MATLAB) local IP
+            ROSRobotWrapper.InitROS(rosMasterURI, rosIP);
             
             self.jointStateTopic = '/ppr/joint_states';
             self.jointStateSub = rossubscriber(self.jointStateTopic, 'sensor_msgs/JointState');
@@ -42,8 +38,8 @@ classdef ROSRobotWrapper < handle
             originTransformMsg = self.originTransformSub.LatestMessage;
             jointStateMsg = self.jointStateSub.LatestMessage;
             
-            if ~istempty(originTransformMsg) && ~isempty(jointStateMsg)
-                self.robot.model.base = PoseStampedToTransform(originTransformMsg);
+            if ~isempty(originTransformMsg) && ~isempty(jointStateMsg)
+                self.robot.model.base = ROSRobotWrapper.PoseStampedToTransform(originTransformMsg);
                 self.robot.model.animate(jointStateMsg.Position');
                 drawnow();
             end
@@ -72,6 +68,14 @@ classdef ROSRobotWrapper < handle
                    ,poseStamped.Pose.Orientation.Z];
             transform(1:3,1:3) = quat2rotm(quat);
             return;
+        end
+        
+        function InitROS(masterURI, ip)
+            %INITROS Initialises the ROS Network if needed
+            rosshutdown
+            setenv('ROS_MASTER_URI',masterURI);
+            setenv('ROS_IP',ip);
+            rosinit
         end
     end
 end

@@ -10,7 +10,7 @@ classdef PingPongRobot < handle
         model;
         
         %< Robot workspace
-        workspace = [-1 1 -1 1 -0.3 1];
+        workspace = [-1 1 -2 2 0 3];
 
     end
     

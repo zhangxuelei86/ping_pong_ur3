@@ -3,8 +3,6 @@ classdef ROSTrajectoryPublisher < handle
     %and sends to to the robot via ROS
     
     properties
-        rosMasterURI;
-        rosIP;
         
         dataType;
         jointTrajTopic;
@@ -20,13 +18,9 @@ classdef ROSTrajectoryPublisher < handle
         function self = ROSTrajectoryPublisher()
             %ROSTRAJECTORYPUBLISHER Construct an instance of this class
             %   Initialises default properties
-            
-            self.rosMasterURI = 'http://192.168.1.118:11311'; % default Ubuntu PC local IP
-            self.rosIP = '192.168.1.116'; % default Windows PC (MATLAB) local IP
 
             self.dataType = 'trajectory_msgs/JointTrajectory';
             self.jointTrajTopic = '/ppr/follow_joint_trajectory';
-            self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
             self.jointTrajMsg = rosmessage(self.dataType);
             
             self.jointNames = ["base_link",     ...
@@ -59,9 +53,10 @@ classdef ROSTrajectoryPublisher < handle
                self.jointTrajMsg.Points(i,1).Velocities = velMatrix(i,:);
                self.jointTrajMsg.Points(i,1).TimeFromStart.Nsec = deltaT_msec*i;
             end
-            
+            self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
             send(self.jointTrajPub, self.jointTrajMsg); pause(0.1);
             disp("Joint Trajectory SENT to robot");
+            try delete(self.jointTrajPub); end
             success = true; return;
         end
         
@@ -76,16 +71,6 @@ classdef ROSTrajectoryPublisher < handle
                 jointTrajPoint = rosmessage('trajectory_msgs/JointTrajectoryPoint');
                 self.jointTrajMsg.Points = [self.jointTrajMsg.Points; jointTrajPoint];
             end
-        end
-        
-        function InitROS(self, masterURI, ip)
-            %INITROS Initialises the ROS Network if needed
-            self.rosMasterURI = masterURI;
-            self.rosIP = ip;
-            rosshutdown
-            setenv('ROS_MASTER_URI',self.rosMasterURI);
-            setenv('ROS_IP',self.rosIP);
-            rosinit
         end
     end
 end

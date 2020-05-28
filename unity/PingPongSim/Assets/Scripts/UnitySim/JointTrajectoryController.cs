@@ -43,7 +43,7 @@ namespace Robot
 
         private void followNextPoint() {
             foreach (RobotJoint joint in _joints) {
-                int joint_index = _traj.joint_names.BinarySearch(joint.name);
+                int joint_index = _traj.joint_names.LastIndexOf(joint.name);
                 joint.setDestination(_next_point.positions[joint_index], _next_point.velocities[joint_index]);
             }
         }

@@ -47,7 +47,7 @@ classdef PingPongRobot < handle
         function GetPingPongRobot ( self )
 
             % Create the UR3 model mounted on a linear rail
-            RobotLinks(1) = Link([pi  0            0        pi/2  1]); % PRISMATIC Link
+            RobotLinks(1) = Link([pi  0        0        pi/2  1]); % PRISMATIC Link
             RobotLinks(2) = Link([0  0.152+0.03   0        pi/2   0]);
             RobotLinks(3) = Link([0  0.12         -0.244   0      0]);
             RobotLinks(4) = Link([0  -0.093       -0.213   0      0]);
@@ -67,7 +67,7 @@ classdef PingPongRobot < handle
             self.model = SerialLink(RobotLinks,'name',self.name);
             
             % Rotate PingPong robot to the correct orientation
-            self.model.base = transl(0.4,0,0) * self.model.base * trotx(pi/2) * troty(pi/2);
+%             self.model.base = transl(0.4,0,0) * self.model.base * trotx(pi/2) * troty(pi/2);
 
         end
         

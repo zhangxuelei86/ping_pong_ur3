@@ -8,6 +8,7 @@ ModelImporter:
     400000: //RootNode
     400002: default
     2100000: material_0
+    2100002: material_0.005
     2300000: default
     3300000: default
     4300000: default
@@ -16,6 +17,11 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: material_0
+    second: {fileID: 2100000, guid: 0e6c549eb6b79d54d9dff1cb43f4fabe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: material_0.005
     second: {fileID: 2100000, guid: 0e6c549eb6b79d54d9dff1cb43f4fabe, type: 2}
   materials:
     importMaterials: 1

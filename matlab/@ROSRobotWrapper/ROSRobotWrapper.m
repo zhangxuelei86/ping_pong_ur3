@@ -60,6 +60,9 @@ classdef ROSRobotWrapper < handle
     
     methods(Static)
         function transform = PoseStampedToTransform(poseStamped)
+            %POSESTAMPEDTOTRANSFORM Turn a PoseStamped ROS message into a
+            %Homogenneous transform (PoseStamped orientation is in Quaternion)
+            
             transform = transl(poseStamped.Pose.Position.X ...
                               ,poseStamped.Pose.Position.Y ...
                               ,poseStamped.Pose.Position.Z);

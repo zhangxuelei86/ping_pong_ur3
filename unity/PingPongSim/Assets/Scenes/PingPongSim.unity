@@ -5019,6 +5019,7 @@ GameObject:
   - component: {fileID: 1567514503}
   - component: {fileID: 1567514504}
   - component: {fileID: 1567514505}
+  - component: {fileID: 1567514506}
   m_Layer: 0
   m_Name: ROS Sharp
   m_TagString: Untagged
@@ -5106,6 +5107,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Topic: /ppr/follow_joint_trajectory
+  TimeStep: 0
+  controller: {fileID: 1228805621}
+--- !u!114 &1567514506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567514500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fd72f5f5785b86429cea1d4b504592b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Topic: /ppr/e_stop
   TimeStep: 0
   controller: {fileID: 1228805621}
 --- !u!1 &1615239096

@@ -13,7 +13,7 @@ rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
 
 %% Step 2: Initialise the JointTrajectoryPublisher
 % This takes ~ 5 seconds
-steps = 100; % important
+steps = 200; % important
 deltaT = 0.02;
 rosTP = ROSTrajectoryPublisher();
 rosTP.InitPublisher(steps);
@@ -24,7 +24,7 @@ rosRW.startRobotUpdate();
 %% Step 4: Calculate a test qMatrix and velMatrix
 qBegin = ppr.model.getpos();
 qEnd = qBegin;
-qEnd(2:7) = qBegin(2:7) - 0.6; % just the arm, without rail
+qEnd(2:7) = qBegin(2:7) - pi/3; % just the arm, without rail
 qMatrix = jtraj(qBegin,qEnd,steps);
 velMatrix = zeros(steps,7);
 for i = 1:steps-1
@@ -42,6 +42,12 @@ end
 % You can also get return value for 'success'
 rosRW.startRobotUpdate(); pause(0.2);
 rosTP.SendTrajectory(qMatrix, velMatrix, deltaT);
+
+%% (Optional) E-Stop
+rosRW.eStopRobot(true);
+
+%% (Optional) Turn off E-Stop
+rosRW.eStopRobot(false);
 
 %% (Optional) Comparing joint angles after
 qEnd

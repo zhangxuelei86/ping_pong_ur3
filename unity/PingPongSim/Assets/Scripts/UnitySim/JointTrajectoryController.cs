@@ -17,6 +17,7 @@ namespace Robot
         private JointTrajectoryPoint _next_point;
         private int _traj_index = 0;
         private bool _finished_traj = true;
+        private bool _robot_disabled = false;
         private bool _going_to_point = false;
 
         public float PositionKp = 0.0f, PositionKi = 0.0f, PositionKd = 0.0f;
@@ -31,26 +32,43 @@ namespace Robot
 
         void FixedUpdate()
         {
-            if(!_finished_traj) {
-                if(_traj.start_time + _next_point.time_from_start <= Time.fixedTime) {
-                    // while loop goes to the next point in trajectory, skipping points according to their time_from_start value
-                    while(_traj.start_time + _next_point.time_from_start <= Time.fixedTime) {
-                        _traj_index++;
-                        if(_traj_index == _traj.points.Count) {
-                            _finished_traj = true;
-                            float time_complete = Time.fixedTime - _traj.start_time;
-                            Debug.Log("Completed trajectory in: " + time_complete.ToString("F3") + " seconds");
-                            break;
+            if(!_robot_disabled) {
+                if(!_finished_traj) {
+                    if(_traj.start_time + _next_point.time_from_start <= Time.fixedTime) {
+                        // while loop goes to the next point in trajectory, skipping points according to their time_from_start value
+                        while(_traj.start_time + _next_point.time_from_start <= Time.fixedTime) {
+                            _traj_index++;
+                            if(_traj_index == _traj.points.Count) {
+                                _finished_traj = true;
+                                float time_complete = Time.fixedTime - _traj.start_time;
+                                Debug.Log("Completed trajectory in: " + time_complete.ToString("F3") + " seconds");
+                                break;
+                            }
+                            _next_point = _traj.points[_traj_index];
                         }
-                        _next_point = _traj.points[_traj_index];
+                        _going_to_point = false;
                     }
-                    _going_to_point = false;
-                }
-                if(!_going_to_point) {
-                    followNextPoint();
-                    _going_to_point = true;
+                    if(!_going_to_point) {
+                        followNextPoint();
+                        _going_to_point = true;
+                    }
                 }
             }
+        }
+
+        public void stopRobot() {
+            foreach (RobotJoint joint in _joints) {
+                joint.setSpeed(0.0f);
+                _robot_disabled = true;
+            }
+            Debug.Log("Robot DISABLED");
+        }
+
+        public void startRobot() {
+            foreach (RobotJoint joint in _joints) {
+                _robot_disabled = false; 
+            }
+            Debug.Log("Robot RE-ENABLED");
         }
 
         private void followNextPoint() {

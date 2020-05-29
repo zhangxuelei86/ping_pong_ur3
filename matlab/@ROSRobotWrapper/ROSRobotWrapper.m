@@ -11,6 +11,10 @@ classdef ROSRobotWrapper < handle
         originTransformTopic;
         originTransformSub;
         
+        eStopTopic;
+        eStopPub;
+        eStopMsg;
+        
         robotUpdateTimer;
     end
     
@@ -28,6 +32,9 @@ classdef ROSRobotWrapper < handle
             self.originTransformTopic = '/ppr/origin_pose';
             self.originTransformSub = rossubscriber(self.originTransformTopic, 'geometry_msgs/PoseStamped');
         
+            self.eStopTopic = '/ppr/e_stop';
+            self.eStopMsg = rosmessage('std_msgs/Bool');
+            
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
             self.robotUpdateTimer.TimerFcn = @(obj, event)updateRobot(self);
         end
@@ -51,6 +58,17 @@ classdef ROSRobotWrapper < handle
         
         function stopRobotUpdate(self)
             stop(self.robotUpdateTimer);
+        end
+        
+        function eStopRobot(self, value)
+            %ESTOPROBOT Stops, or restarts the robot
+            % value = true: stop (e-stop), value = false: resume
+            
+            self.eStopPub = rospublisher(self.eStopTopic,'std_msgs/Bool');
+            self.eStopMsg.Data = value;
+            send(self.eStopPub, self.eStopMsg); pause(0.1);
+            disp("Sent E-Stop message");
+            try delete(self.eStopPub); end
         end
     end
     

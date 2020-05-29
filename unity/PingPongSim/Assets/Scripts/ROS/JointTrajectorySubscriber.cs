@@ -21,7 +21,7 @@ namespace RosSharp.RosBridgeClient
 			base.Start();
 		}
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (isMessageReceived)
             {
@@ -51,10 +51,10 @@ namespace RosSharp.RosBridgeClient
             {
                 Robot.JointTrajectoryPoint joint_traj_point = new Robot.JointTrajectoryPoint();
                 for(int i = 0; i < trajectory.joint_names.Count; i++) {
-                    joint_traj_point.positions.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.positions[i]));
-                    joint_traj_point.velocities.Add(System.Convert.ToSingle(-Mathf.Rad2Deg*point.velocities[i]));
+                    joint_traj_point.positions.Add(System.Convert.ToSingle(point.positions[i]));
+                    joint_traj_point.velocities.Add(System.Convert.ToSingle(point.velocities[i]));
                 }
-                joint_traj_point.time_from_start = point.time_from_start.nsecs/1000;
+                joint_traj_point.time_from_start = ((float)point.time_from_start.nsecs) / 1000.0f;
                 trajectory.points.Add(joint_traj_point);
             }
             controller.followTrajectory(trajectory);

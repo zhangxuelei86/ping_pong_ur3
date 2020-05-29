@@ -10,6 +10,7 @@ public class RobotJointContinuous : RobotJoint
     void Start()
     {
         _continuous = true;
+        _joint_type = "continuous";
         _hinge_joint = GetComponent(typeof(HingeJoint)) as HingeJoint;
         setLimits(-180, 180);
         setGain(Gain);

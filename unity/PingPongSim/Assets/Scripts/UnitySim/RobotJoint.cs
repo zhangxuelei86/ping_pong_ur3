@@ -1,4 +1,11 @@
-﻿using System.Collections;
+﻿/*
+Author: Tony Le (tony@mechatony.com)
+
+Base class for other joint types (Revolute, Prismatic, Continuous)
+Keeps track of position, speed, limits, and their relationships. Derived classes (joints) use this position
+to control their respective Unity Joints.
+*/
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +17,7 @@ public class RobotJoint : MonoBehaviour
     protected float _limit_max = 45;
     protected float _speed_gain = 1.0f;
     protected bool _continuous = false;
+    protected string _joint_type = "revolute";
 
     // CONTROL STATUS
     protected float _position = 0;
@@ -45,6 +53,10 @@ public class RobotJoint : MonoBehaviour
         _pid_control = false;
         _speed = speed;
         return true;
+    }
+
+    public string getJointType() {
+        return _joint_type;
     }
 
     public float getSpeed() {
@@ -87,6 +99,8 @@ public class RobotJoint : MonoBehaviour
         return true;
     }
 
+    // Checks whether a PID control has been sent recently
+    // This is added to prevent the robot from keep moving if the final joint velocity is > 0
     protected void watchDogCheck() {
         if(_pid_control) {
             if(Time.fixedTime - last_command_time > watch_dog_timeout) {

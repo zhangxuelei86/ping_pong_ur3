@@ -1,5 +1,5 @@
 /*
-This the UR3 Joint Trajectory Joint class (datatype) that simplifies the JointTrajectoryPoint message
+This the Joint Trajectory class (datatype) that simplifies the JointTrajectoryPoint message
 */
 using System.Collections.Generic;
 

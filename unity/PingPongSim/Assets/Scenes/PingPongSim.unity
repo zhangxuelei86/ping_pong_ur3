@@ -4524,14 +4524,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1250929691}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b22092be86b055c47b1674c73ac8349b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   offset: 0
   Gain: 0
-  InitialPosition: -0.2
+  InitialPosition: -0.4
 --- !u!114 &1250929700
 MonoBehaviour:
   m_ObjectHideFlags: 0

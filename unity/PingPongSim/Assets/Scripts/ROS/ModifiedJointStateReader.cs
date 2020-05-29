@@ -1,5 +1,6 @@
 /*
 Based on work by Dr. Martin Bischoff (martin.bischoff@siemens.com)
+Takes the joint offset into account, to fix a known bug with Unity Joints' springs
 */
 
 using RosSharp.Urdf;
@@ -23,7 +24,13 @@ namespace RosSharp.RosBridgeClient
         public void Read(out string name, out float position, out float velocity, out float effort)
         {
             name = urdfJoint.JointName;
-            position = urdfJoint.GetPosition() + _robot_joint.offset*Mathf.Deg2Rad;
+            if(_robot_joint.getJointType() == "prismatic") {
+                position = urdfJoint.GetPosition() + _robot_joint.offset;
+            }
+            else {
+                position = urdfJoint.GetPosition() + _robot_joint.offset*Mathf.Deg2Rad;
+            }
+            
             velocity = urdfJoint.GetVelocity();
             effort = urdfJoint.GetEffort();
         }

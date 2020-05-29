@@ -1,6 +1,8 @@
 /*
 Based on work of
 Author: Suzannah Smith (suzannah.smith@siemens.com)
+
+Fixes an issue where the axes of the joint do not align with the parent object
 */
 
 using System;
@@ -38,7 +40,7 @@ namespace RosSharp.Urdf
 
         public override float GetPosition()
         {
-            return Vector3.Dot(UnityJoint.transform.localPosition - UnityJoint.connectedAnchor, UnityJoint.axis);
+            return Vector3.Dot(UnityJoint.transform.localPosition - UnityJoint.connectedAnchor, ((ConfigurableJoint)UnityJoint).secondaryAxis);
         }
 
         protected override void OnUpdateJointState(float deltaState)

@@ -51,7 +51,7 @@ classdef ROSTrajectoryPublisher < handle
             for i = 1:self.steps
                self.jointTrajMsg.Points(i,1).Positions = qMatrix(i,:);
                self.jointTrajMsg.Points(i,1).Velocities = velMatrix(i,:);
-               self.jointTrajMsg.Points(i,1).TimeFromStart.Nsec = deltaT_msec*i;
+               self.jointTrajMsg.Points(i,1).TimeFromStart.Nsec = deltaT_msec*(i-1);
             end
             self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
             send(self.jointTrajPub, self.jointTrajMsg); pause(0.1);

@@ -3,6 +3,7 @@ classdef E_Stop < handle
     properties (SetAccess = private)
         base;
         button;
+        state = false;
     end
     
     properties
@@ -20,6 +21,8 @@ classdef E_Stop < handle
         end
         
         function pressButton(self)
+            self.state = true;
+            
             for i = 1:5
                 self.button.UpdatePose(self.button.pose * transl(0,0,-0.00125));
                 drawnow();
@@ -27,6 +30,8 @@ classdef E_Stop < handle
         end
         
         function releaseButton (self)
+            self.state = false;
+            
             for i = 1:20
                 if i <= 10
                     self.button.UpdatePose(self.button.pose * transl(0,0,0.0002875) * trotz(pi/72));
@@ -36,5 +41,10 @@ classdef E_Stop < handle
                 drawnow();
             end
         end
+        
+        function state = getEStopState(self)
+            state = self.state;
+        end
+        
     end
 end

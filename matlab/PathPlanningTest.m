@@ -14,7 +14,7 @@
 %%  
     steps = 25;
     tr = robot.model.fkine(robot.model.getpos);
-    cartTraj = planner.GenerateCartersianTrajectory(tr(1:3,4)'+[-0.1 -0.1 -0.15], [0.2 -1 0]);
+    cartTraj = planner.GenerateCartersianTrajectory(tr(1:3,4)'+[0.5 -0.1 0.1], [-0.2 -1 0]);
     rot = zeros(3,steps);
     for i = 1:steps
         rot(:,i) = (tr2rpy(tr))';

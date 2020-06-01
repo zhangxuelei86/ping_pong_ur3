@@ -165,12 +165,9 @@ classdef PathPlanner < handle
             % trajectory
             x = zeros(3,steps);
             
-            % Based on the robot current joint state
-            % Calculate the position of the first joint of the robot
-            q = self.robot.model.getpos();
-            tr = self.robot.model.base*self.robot.model.links(1).A(q(1));
-            workRadius = 0.5;
-            robotBaseCentre = tr(1:3,4);
+            robotBase = transl(-0.4,0,0) * self.robot.model.base;
+            robotBaseCentre = robotBase(1:3,4)';
+            ellipsoidRadii = [0.85,0.5,0.5];
             
             % Check if the ball position lies within the workspace of the
             % robot
@@ -179,9 +176,8 @@ classdef PathPlanner < handle
             % based on the incoming velocity of the ball (speed and direction)
             % A cartesian trajectory of the hit motion is then computed using the trapezoidal
             % velocity profile
-            if (((ballPose(1)-robotBaseCentre(1))^2)+((ballPose(2)-robotBaseCentre(2))^2) <= workRadius^2) ...
-                    && ballPose(3) <= robotBaseCentre(3) + workRadius
-                
+            if (self.GetAlgebraicDist(ballPose,robotBaseCentre,ellipsoidRadii) < 1) && ballPose(3)>=0
+            
                 startPt = ballPose + ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
                 endPt = ballPose - ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
 
@@ -194,7 +190,6 @@ classdef PathPlanner < handle
                 % The cartesian trajectory computed is plotted in the 3D
                 % workspace for visalisation
                 try delete(self.RMRCCartTraj_h); end
-%                 vel = diff(x,1,2);
                 
                 self.RMRCCartTraj_h = plot3(x(1,:),x(2,:),x(3,:),'k.','LineWidth',1);
 
@@ -205,10 +200,6 @@ classdef PathPlanner < handle
                 isReachable = false;
             end
             
-        end
-        
-        %% LiveIBVS
-        function [jointVelocity, isInFrame] = LiveIBVS(self, cam)
         end
         
     end
@@ -224,6 +215,30 @@ classdef PathPlanner < handle
             for i = 1:steps
                 qMatrix(i,:) = (1-s(i))*q1 + s(i)*q2;
             end
+        end
+        
+        %% GetAlgebraicDist
+        % This function is from the Lab Exercise 6 in the Robotics subject
+        % materials provided
+        % determine the algebraic distance given a set of points and the center
+        % point and radii of an elipsoid
+        % *Inputs:* 
+        %
+        % _points_ (many*(2||3||6) double) x,y,z cartesian point
+        %
+        % _centerPoint_ (1 * 3 double) xc,yc,zc of an ellipsoid
+        %
+        % _radii_ (1 * 3 double) a,b,c of an ellipsoid
+        %
+        % *Returns:* 
+        %
+        % _algebraicDist_ (many*1 double) algebraic distance for the ellipsoid
+
+        function algebraicDist = GetAlgebraicDist(points, centerPoint, radii)
+
+        algebraicDist = ((points(:,1)-centerPoint(1))/radii(1)).^2 ...
+                      + ((points(:,2)-centerPoint(2))/radii(2)).^2 ...
+                      + ((points(:,3)-centerPoint(3))/radii(3)).^2;
         end
         
     end

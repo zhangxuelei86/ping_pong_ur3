@@ -5,28 +5,23 @@ classdef RobotController < handle
     end
     
     properties (SetAccess = private)
-        robot;
+        robot; % PingPongRobot
         
-<<<<<<< Updated upstream
-        isKillRobot = false;
-=======
-        isKillRobot = 0;
-        
-        trajectory;
+        isKillRobot = false; % flag for whether robot is in kill state
+
+        trajectory; % current tranjectory the robot is to follow
     end
     
     properties
         currentJointState;
->>>>>>> Stashed changes
     end
     
     methods
         function self = RobotController (robot)
             
-            self.robot = robot;
+            self.robot = robot; %% Ping Pong Robot
         end
         
-<<<<<<< Updated upstream
         %% StopRobot
         % This function is sets the flag of isKillRobot to 0
         % This function is called on the event of any collision and unwanted
@@ -34,9 +29,31 @@ classdef RobotController < handle
         % The flag isKillRobot determines if the robot will progress in
         % it's motion or not.
         function StopRobot ( self )
+            
             if self.isKillRobot == true
                 self.isKillRobot = false;
             end
+            
+            self.trajectory = self.currentJointState;
+        end
+        
+        %% SetRobotTrajectory
+        % The function is called to set the current tranjectory the robot
+        % should follow
+        
+        function SetRobotJointTrajectory(self, trajectory)
+            
+            self.trajectory = trajectory;
+        end
+        
+        %% SetRobotJointState
+        
+        function SetRobotJointState (self, jointState)
+            
+            self.currentJointState = jointState;
+            
+            self.robot.model.animate(self.currentJointState);
+            drawnow();
         end
         
         %% CheckCollision
@@ -68,20 +85,7 @@ classdef RobotController < handle
                         
                     end
                 end
-                
-=======
-        function StopRobot ( self )
-            if self.isKillRobot == 1
-                self.isKillRobot = 0;
->>>>>>> Stashed changes
             end
-            
-            self.trajectory = self.currentJointState;
-        end
-        
-        function SetRobotJointTrajectory(self, trajectory)
-            
-            self.trajectory = trajectory;
         end
         
     end

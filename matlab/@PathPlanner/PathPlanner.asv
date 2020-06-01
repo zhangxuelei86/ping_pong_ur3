@@ -208,8 +208,7 @@ classdef PathPlanner < handle
         end
         
         %% LiveIBVS
-        function [jointVelocity, isInFrame] = LiveIBVS(self, cam)
-        end
+        function [jointVelocity, isInFrame] = LiveIBVS
         
     end
     

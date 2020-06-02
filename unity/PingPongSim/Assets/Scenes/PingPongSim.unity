@@ -962,6 +962,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 100008, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -991,14 +999,6 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 100022, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
@@ -1507,6 +1507,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 100008, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -1536,14 +1544,6 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 100022, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
@@ -5020,6 +5020,7 @@ GameObject:
   - component: {fileID: 1567514504}
   - component: {fileID: 1567514505}
   - component: {fileID: 1567514506}
+  - component: {fileID: 1567514507}
   m_Layer: 0
   m_Name: ROS Sharp
   m_TagString: Untagged
@@ -5056,7 +5057,7 @@ MonoBehaviour:
   SecondsTimeout: 10
   Serializer: 0
   protocol: 1
-  RosBridgeServerUrl: ws://172.19.127.190:9090
+  RosBridgeServerUrl: ws://172.19.126.33:9090
 --- !u!114 &1567514503
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5122,6 +5123,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Topic: /ppr/e_stop
+  TimeStep: 0
+  controller: {fileID: 1228805621}
+--- !u!114 &1567514507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567514500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39c8eb4c18bfadb4996117696309627b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Topic: /ppr/joint_jog
   TimeStep: 0
   controller: {fileID: 1228805621}
 --- !u!1 &1615239096
@@ -6556,7 +6572,7 @@ HingeJoint:
   m_UseLimits: 0
   m_Limits:
     min: 0
-    max: 0
+    max: 180
     bounciness: 0
     bounceMinVelocity: 0.2
     contactDistance: 0

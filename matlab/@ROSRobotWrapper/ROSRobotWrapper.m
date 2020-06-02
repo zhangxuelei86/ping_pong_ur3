@@ -15,6 +15,11 @@ classdef ROSRobotWrapper < handle
         eStopPub;
         eStopMsg;
         
+        jointJogTopic;
+        jointJogPub;
+        jointJogMsg;
+        jointNames;
+        
         robotUpdateTimer;
     end
     
@@ -35,6 +40,17 @@ classdef ROSRobotWrapper < handle
             self.eStopTopic = '/ppr/e_stop';
             self.eStopMsg = rosmessage('std_msgs/Bool');
             
+            self.jointJogTopic = '/ppr/joint_jog';
+            self.jointJogMsg = rosmessage('sensor_msgs/JointState');
+            self.jointNames = ["base_link",     ...
+                               "shoulder_link", ...
+                               "upper_arm_link",...
+                               "forearm_link",  ...
+                               "wrist_1_link",  ...
+                               "wrist_2_link",  ...
+                               "wrist_3_link"];
+            self.jointJogMsg.Name = self.jointNames;
+            
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
             self.robotUpdateTimer.TimerFcn = @(obj, event)updateRobot(self);
         end
@@ -53,7 +69,10 @@ classdef ROSRobotWrapper < handle
         end
         
         function startRobotUpdate(self)
-            start(self.robotUpdateTimer);
+            try start(self.robotUpdateTimer);
+            catch
+                disp("Warning: Robot update already started");
+            end
         end
         
         function stopRobotUpdate(self)
@@ -69,6 +88,16 @@ classdef ROSRobotWrapper < handle
             send(self.eStopPub, self.eStopMsg); pause(0.1);
             disp("Sent E-Stop message");
             try delete(self.eStopPub); end
+        end
+        
+        function jogRobot(self, velocities)
+            %JOGROBOT Jogs the robot's joint velocities
+            
+            self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
+            self.jointJogMsg.Velocity = velocities;
+            send(self.jointJogPub, self.jointJogMsg); pause(0.2);
+            disp("Sent joint jogging message");
+            try delete(self.jointJogPub); end
         end
     end
     

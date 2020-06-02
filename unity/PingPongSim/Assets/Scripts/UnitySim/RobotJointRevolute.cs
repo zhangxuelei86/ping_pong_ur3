@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class RobotJointRevolute : RobotJoint
 {
-    public float Gain;
     public float InitialPosition;
     private RosSharp.HingeJointLimitsManager _hinge_joint_limits;
     private HingeJoint _hinge_joint;
@@ -20,7 +19,6 @@ public class RobotJointRevolute : RobotJoint
         _hinge_joint_limits.LargeAngleLimitMax += offset;
 
         setLimits(_hinge_joint_limits.LargeAngleLimitMin, _hinge_joint_limits.LargeAngleLimitMax);
-        setGain(Gain);
         setPosition(InitialPosition);
     }
 

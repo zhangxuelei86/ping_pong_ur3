@@ -15,7 +15,7 @@ classdef PathPlanner < handle
     properties (SetAccess = private)
         robot;
         
-        target;
+        targetPose;
         
         fixedOffsetTime;
         stepsTotal = 100;
@@ -34,24 +34,24 @@ classdef PathPlanner < handle
             
         end
         
-        function SetTargetPose (self, target, currentJointState)
+        function SetTargetPose (self, targetPose, currentJointState)
             
             if nargin > 2
                 self.currentJointState = currentJointState;
             end
             
-            self.target = target;
+            self.targetPose = targetPose;
         end
         
-        function trajectory = IKTrajectory(self, steps, isQuintic)
-            if nargin < 3
+        function trajectory = IKTrajectory(self, isQuintic, isGeneral, qGoal)
+            if nargin < 4
+                qGoal = self.robot.model.ikcon(self.targetPose, self.currentJointState);
                 isQuintic = false;
                 if nargin < 2
                     steps = 0.75 * self.stepsTotal;
                 end
             end
             
-            qGoal = self.robot.model.ikcon(self.target, self.currentJointState);
             if isQuintic
                 trajectory = jtraj(self.currentJointState, qGoal, steps);
             else
@@ -67,7 +67,7 @@ classdef PathPlanner < handle
                         
             if nargin < 3
                 tr = self.robot.model.fkine(self.currentJointState);
-                cartesianTrajectory = [[tr(1:3,4)', tr2rpy(tr)];[self.target(1:3,4)', tr2rpy(tr)]];
+                cartesianTrajectory = [[tr(1:3,4)', tr2rpy(tr)];[self.targetPose(1:3,4)', tr2rpy(tr)]];
             end
             
             steps = 0.25*self.stepsTotal;
@@ -167,7 +167,7 @@ classdef PathPlanner < handle
             
             robotBase = transl(-0.4,0,0) * self.robot.model.base;
             robotBaseCentre = robotBase(1:3,4)';
-            ellipsoidRadii = [0.85,0.5,0.5];
+            ellipsoidRadii = [0.8,0.45,0.5];
             
             % Check if the ball position lies within the workspace of the
             % robot

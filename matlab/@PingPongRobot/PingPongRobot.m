@@ -122,5 +122,48 @@ classdef PingPongRobot < handle
 
         end
         
+        %% CheckPointsInRobotWorkspace
+        % Given a set of cartesian points row vectors, the function
+        % returns a vector flag of whether the points lie inside the
+        % ellipsoid of the robot workspace
+        function flag = CheckPointsInRobotWorkspace (self, points)
+            
+            robotBase = homtrans(self.model.base,transl(0,0,-0.4));
+            robotBaseCentre = robotBase(1:3,4)';
+            ellipsoidRadii = [0.8,0.45,0.5];
+            
+            dist = self.GetAlgebraicDist(points,robotBaseCentre,ellipsoidRadii);
+            flag = zeros(1,length(dist));
+            flag(dist<1) = 1;
+            
+        end
+    end
+    
+    methods (Static)
+        
+        %% GetAlgebraicDist
+        % This function is from the Lab Exercise 6 in the Robotics subject
+        % materials provided
+        % determine the algebraic distance given a set of points and the center
+        % point and radii of an elipsoid
+        % *Inputs:* 
+        %
+        % _points_ (many*(2||3||6) double) x,y,z cartesian point
+        %
+        % _centerPoint_ (1 * 3 double) xc,yc,zc of an ellipsoid
+        %
+        % _radii_ (1 * 3 double) a,b,c of an ellipsoid
+        %
+        % *Returns:* 
+        %
+        % _algebraicDist_ (many*1 double) algebraic distance for the ellipsoid
+
+        function algebraicDist = GetAlgebraicDist(points, centerPoint, radii)
+
+        algebraicDist = ((points(:,1)-centerPoint(1))/radii(1)).^2 ...
+                      + ((points(:,2)-centerPoint(2))/radii(2)).^2 ...
+                      + ((points(:,3)-centerPoint(3))/radii(3)).^2;
+        end
+        
     end
 end

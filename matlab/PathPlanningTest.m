@@ -3,7 +3,7 @@
 % incoming velocity at a specific 
 
 %% Robot and Planner objects
-    clf
+    close all;
     robot = PingPongRobot;
     robot.PlotAndColourRobot();
     hold on;
@@ -11,6 +11,10 @@
     
     planner = PathPlanner(robot);
     
+%% New Order of PathPlanner Class
+
+tr = robot.model.fkine(robot.model.getpos);
+planner.SetTargetInfo(transl(0,0,0)*tr,[-0.2 -1 0],2);
 %%  
     steps = 25;
     tr = robot.model.fkine(robot.model.getpos);
@@ -30,8 +34,9 @@
     
     path = [Ikpath; path];
     
+    %%
 for i = 1:size(path(:,1))
     robot.model.animate(path(i,:));
-    robot.model.fkine(robot.model.getpos);
+%     robot.model.fkine(robot.model.getpos);
     drawnow();
 end

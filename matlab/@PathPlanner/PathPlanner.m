@@ -3,12 +3,8 @@
 % avoidance by calculating inverse kinematics or RMRC
 classdef PathPlanner < handle
     properties
-        
-        isIKSolution = true;
-        isRMRC = false;
-        
-        currentJointState = zeros(1,7);
-        
+        path;
+                
         RMRCCartTraj_h;
     end
     
@@ -16,9 +12,13 @@ classdef PathPlanner < handle
         robot;
         
         targetPose;
+        targetVel;
+        totalTime;
         
-        fixedOffsetTime;
+        fixedTimeOffset = 0;
+        
         stepsTotal = 100;
+        deltaT;
     end
     
     methods
@@ -33,29 +33,35 @@ classdef PathPlanner < handle
             self.stepsTotal = steps;
             
         end
-        
-        function SetTargetPose (self, targetPose, currentJointState)
+
+        function SetFixedTimeOffset (self, timeOffset)
             
-            if nargin > 2
-                self.currentJointState = currentJointState;
-            end
+            self.fixedTimeOffset = timeOffset;
             
-            self.targetPose = targetPose;
         end
         
-        function trajectory = IKTrajectory(self, isQuintic, isGeneral, qGoal)
-            if nargin < 4
-                qGoal = self.robot.model.ikcon(self.targetPose, self.currentJointState);
+        function SetTargetInfo (self, targetPose, targetVel, timeToTarget)
+            
+            self.targetPose = targetPose;
+            self.targetVel = targetVel;
+            self.totalTime = (timeToTarget - self.fixedTimeOffset)/0.88;
+            self.deltaT = self.totalTime / self.stepsTotal;
+            
+        end
+        
+        function trajectory = IKTrajectory(self, trGoal, isQuintic)
+            if nargin < 3
                 isQuintic = false;
-                if nargin < 2
-                    steps = 0.75 * self.stepsTotal;
-                end
             end
             
+            currentJointState = self.robot.model.getpos();
+            qGoal = self.robot.model.ikcon(trGoal, currentJointState);
+            steps = 0.76 * self.stepsTotal;
+            
             if isQuintic
-                trajectory = jtraj(self.currentJointState, qGoal, steps);
+                trajectory = jtraj(currentJointState, qGoal, steps);
             else
-                trajectory = self.TrapezoidalVelocityProfile(self.currentJointState, qGoal, steps);
+                trajectory = self.TrapezoidalVelocityProfile(currentJointState, qGoal, steps);
             end
             
         end
@@ -63,16 +69,9 @@ classdef PathPlanner < handle
         %% RMRCTrajectory
         % Function computes a joint state trajectory for the PPR based on
         % time required to hit the ping pong ball
-        function trajectory = RMRCTrajectory(self, time, cartesianTrajectory)
+        function trajectory = RMRCTrajectory(self, cartesianTrajectory)
                         
-            if nargin < 3
-                tr = self.robot.model.fkine(self.currentJointState);
-                cartesianTrajectory = [[tr(1:3,4)', tr2rpy(tr)];[self.targetPose(1:3,4)', tr2rpy(tr)]];
-            end
-            
-            steps = 0.25*self.stepsTotal;
-            deltaT = time/steps;
-%             steps = time/deltaT;
+            steps = 0.24*self.stepsTotal;
             epsilon = 0.1;
             W = diag([1 1 1 0.1 0.1 0.1]);
             
@@ -98,7 +97,7 @@ classdef PathPlanner < handle
             end
                         
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Traform of cartesian trajectory
-            q0 = self.currentJointState;                                                 
+            q0 = self.robot.model.getpos();                                                 
             qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                
 
             for i = 1:steps-1
@@ -107,9 +106,9 @@ classdef PathPlanner < handle
                 Rd = rpy2r(theta(:,i+1)');      % Get next RPY angles, convert to rotation matrix
                 Ra = tr2rt(T);                % Current end-effector rotation matrix
 
-                Rdot = (1/deltaT)*(Rd - Ra);       % Calculate rotation matrix error (see RMRC lectures)
+                Rdot = (1/self.deltaT)*(Rd - Ra);       % Calculate rotation matrix error (see RMRC lectures)
                 S = Rdot * Ra';                      % Skew symmetric! S(\omega)
-                linearVelocity = (1/deltaT)*deltaX;
+                linearVelocity = (1/self.deltaT)*deltaX;
                 angularVelocity = [S(3,2);S(1,3);S(2,1)];
 
                 xdot = W*[linearVelocity;angularVelocity];
@@ -124,7 +123,7 @@ classdef PathPlanner < handle
                 qdot(i,:) = invJ * xdot;
                 
                 for link = 1:length(self.robot.model.links)
-                    q = qMatrix(i,link) + deltaT * qdot(i,:)';
+                    q = qMatrix(i,link) + self.deltaT * qdot(i,:)';
                     if q(link) < self.robot.model.qlim(link,1)
                         qdot(i,link) = 0;
                     elseif q(link) > self.robot.model.qlim(link,2)
@@ -132,7 +131,7 @@ classdef PathPlanner < handle
                     end
                 end
                 
-                qMatrix(i+1,:) = qMatrix(i,:) + deltaT * qdot(i,:);
+                qMatrix(i+1,:) = qMatrix(i,:) + self.deltaT * qdot(i,:);
                 manipltyMatrix(i) = self.robot.model.maniplty(qMatrix(i,:));  % Populate manipulability matrix
             end
             
@@ -146,12 +145,16 @@ classdef PathPlanner < handle
         % steps to be computed
         % Based on whether the ball position is reachable the function then outputs the generated hit trajectory for the
         % robot and the flag what states if the ball is reachable or not
-        function [cartTraj, isReachable] = GenerateCartersianTrajectory(self, ballPose, ballVelocity )
+        function [cartTraj, isReachable] = GenerateCartersianTrajectory(self)
             
             % The cartesian trjectory generator has the same number of
             % steps as the RMRC trajectory
-            steps = 0.25 * self.stepsTotal;
+            steps = 0.24 * self.stepsTotal;
             
+            ballPose = self.targetPose(1:3,4)';
+            ballVelocity = self.targetVel;
+            ballPoseInRobotBaseTr = homtrans(self.robot.model.base, ballPose');
+                        
             % Check if the norm of the velocity vector is greater than the
             % set threshold
             % else set the normal to the cieling value of the threshold
@@ -164,10 +167,7 @@ classdef PathPlanner < handle
             % Create memory allocation for the generated cartesian
             % trajectory
             x = zeros(3,steps);
-            
-            robotBase = transl(-0.4,0,0) * self.robot.model.base;
-            robotBaseCentre = robotBase(1:3,4)';
-            ellipsoidRadii = [0.8,0.45,0.5];
+            theta = zeros(3,steps);
             
             % Check if the ball position lies within the workspace of the
             % robot
@@ -176,7 +176,7 @@ classdef PathPlanner < handle
             % based on the incoming velocity of the ball (speed and direction)
             % A cartesian trajectory of the hit motion is then computed using the trapezoidal
             % velocity profile
-            if (self.GetAlgebraicDist(ballPose,robotBaseCentre,ellipsoidRadii) < 1) && ballPose(3)>=0
+            if self.robot.CheckPointsInRobotWorkspace(ballPose) && ballPoseInRobotBaseTr(2)>=0
             
                 startPt = ballPose + ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
                 endPt = ballPose - ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
@@ -187,6 +187,11 @@ classdef PathPlanner < handle
                     x(3,i) = ballPose(3);
                 end
                 
+                tr = self.robot.model.fkine(self.robot.model.getpos);
+                for i = 1:steps
+                    theta(:,i) = (tr2rpy(tr))';
+                end
+                
                 % The cartesian trajectory computed is plotted in the 3D
                 % workspace for visalisation
                 try delete(self.RMRCCartTraj_h); end
@@ -194,11 +199,55 @@ classdef PathPlanner < handle
                 self.RMRCCartTraj_h = plot3(x(1,:),x(2,:),x(3,:),'k.','LineWidth',1);
 
                 isReachable = true;
-                cartTraj = x;
+                cartTraj = [x ; theta];
                 
             else
                 isReachable = false;
             end
+            
+        end
+        
+        %% BallReturnPath
+        %
+        function path = BallReturnPath(self)
+            
+            [cartTraj, isReachable] = self.GenerateCartersianTrajectory();
+            
+            if isReachable
+                
+                RMRCTraj = self.RMRCTrajectory(cartTraj);
+                IKTraj = self.IKTrajectory(self.robot.model.fkine(RMRCTraj(1,:)), true);
+                
+                path = [IKTraj; RMRCTraj];
+                self.path = path;
+                
+            else
+                disp("Ball pose is UNREACHABLE");
+            end
+        end
+        
+        %% FinalJointStatePath
+        %
+        function path = FinalJointStatePath(self, qGoal, isQuintic)
+            if nargin < 3
+                isQuintic = false;
+            end
+            
+            if isQuintic
+                path = jtraj(currentJointState, qGoal, steps);
+            else
+                path = self.TrapezoidalVelocityProfile(currentJointState, qGoal, steps);
+            end
+            
+            self.path = path;
+            
+        end
+        
+        %% GetPath
+        %
+        function path = GetPath(self)
+            
+            path = self.path;
             
         end
         
@@ -215,30 +264,6 @@ classdef PathPlanner < handle
             for i = 1:steps
                 qMatrix(i,:) = (1-s(i))*q1 + s(i)*q2;
             end
-        end
-        
-        %% GetAlgebraicDist
-        % This function is from the Lab Exercise 6 in the Robotics subject
-        % materials provided
-        % determine the algebraic distance given a set of points and the center
-        % point and radii of an elipsoid
-        % *Inputs:* 
-        %
-        % _points_ (many*(2||3||6) double) x,y,z cartesian point
-        %
-        % _centerPoint_ (1 * 3 double) xc,yc,zc of an ellipsoid
-        %
-        % _radii_ (1 * 3 double) a,b,c of an ellipsoid
-        %
-        % *Returns:* 
-        %
-        % _algebraicDist_ (many*1 double) algebraic distance for the ellipsoid
-
-        function algebraicDist = GetAlgebraicDist(points, centerPoint, radii)
-
-        algebraicDist = ((points(:,1)-centerPoint(1))/radii(1)).^2 ...
-                      + ((points(:,2)-centerPoint(2))/radii(2)).^2 ...
-                      + ((points(:,3)-centerPoint(3))/radii(3)).^2;
         end
         
     end

@@ -5,16 +5,22 @@
 %% Robot and Planner objects
     close all;
     robot = PingPongRobot;
+    robot.model.base = transl(0.4,0,0) * robot.model.base * trotx(pi/2) * troty(pi/2);
     robot.PlotAndColourRobot();
+    axis equal;
     hold on;
-    robot.model.animate([-0.4 0 -pi/4 pi/2 -pi/4 0 0]);
+    robot.model.animate([-0.4000         0   -1.0396    1.7544   -2.2689   -1.5708         0]);
     
     planner = PathPlanner(robot);
     
 %% New Order of PathPlanner Class
 
 tr = robot.model.fkine(robot.model.getpos);
-planner.SetTargetInfo(transl(0,0,0)*tr,[-0.2 -1 0],2);
+planner.SetTargetInfo(tr(1:3,4)'+[-0.4,-0.075,0],[-0.2 -2 0],2);
+
+%%
+
+path  = planner.BallReturnPath();
 %%  
     steps = 25;
     tr = robot.model.fkine(robot.model.getpos);
@@ -35,7 +41,7 @@ planner.SetTargetInfo(transl(0,0,0)*tr,[-0.2 -1 0],2);
     path = [Ikpath; path];
     
     %%
-for i = 1:size(path(:,1))
+for i = 1:size(path,1)
     robot.model.animate(path(i,:));
 %     robot.model.fkine(robot.model.getpos);
     drawnow();

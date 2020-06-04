@@ -7,8 +7,8 @@ clc;
 ppr = PingPongRobot();
 ppr.PlotAndColourRobot();
 
-rosMasterURI = 'http://172.19.127.190:11311'; % default Ubuntu PC local IP
-rosIP = '172.19.119.56'; % default Windows PC (MATLAB) local IP
+rosMasterURI = 'http://192.168.56.101:11311'; % default Ubuntu PC local IP
+rosIP = '192.168.56.1'; % default Windows PC (MATLAB) local IP
 rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
 
 %% Step 2: Initialise the JointTrajectoryPublisher

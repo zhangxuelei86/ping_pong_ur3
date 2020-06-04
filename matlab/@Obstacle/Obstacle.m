@@ -14,6 +14,7 @@ classdef Obstacle < handle
         
         obstacle;
         obstaclePlot;
+        plotTransparency = 0.7;
 
     end
     methods
@@ -71,7 +72,9 @@ classdef Obstacle < handle
 
             tcolor = [.2 .2 .8];
             try delete(self.obstaclePlot); end
-            self.obstaclePlot =  patch('Faces',self.obstacle.faces,'Vertices',self.obstacle.vertices,'FaceVertexCData',tcolor,'FaceColor','flat','lineStyle','none');
+            self.obstaclePlot =  patch('Faces',self.obstacle.faces,'Vertices' ...
+                ,self.obstacle.vertices,'FaceVertexCData',tcolor,'FaceColor', ...
+                'flat','lineStyle','none','FaceAlpha',self.plotTransparency);
             
         end
         
@@ -85,6 +88,18 @@ classdef Obstacle < handle
             
             self.sizeInflationFactor = factor;
             
+        end
+        
+        %% SetTransparency
+        % This function sets the transparency of the obstacle plot due to
+        % it's characteristics such as static obstacle or dynamic obstacles
+        function SetPlotTransparency(self, transparency)
+            if transparency < 0 || transparency > 1
+                disp('The value of transparency must be between 0 and 1');
+                return
+            end
+            
+            self.plotTransparency = transparency;
         end
         
     end

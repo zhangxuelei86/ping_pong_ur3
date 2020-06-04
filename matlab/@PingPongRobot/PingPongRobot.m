@@ -132,6 +132,9 @@ classdef PingPongRobot < handle
             robotBaseCentre = robotBase(1:3,4)';
             ellipsoidRadii = [0.8,0.45,0.5];
             
+%             [X Y Z] = ellipsoid(robotBaseCentre(1),robotBaseCentre(2),robotBaseCentre(3),ellipsoidRadii(1),ellipsoidRadii(2),ellipsoidRadii(3));
+%             surf(X,Y,Z);
+            
             dist = self.GetAlgebraicDist(points,robotBaseCentre,ellipsoidRadii);
             flag = zeros(1,length(dist));
             flag(dist<1) = 1;

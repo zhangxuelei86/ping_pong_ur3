@@ -95,7 +95,7 @@ classdef ROSRobotWrapper < handle
             
             self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
             self.jointJogMsg.Velocity = velocities;
-            send(self.jointJogPub, self.jointJogMsg); pause(0.2);
+            send(self.jointJogPub, self.jointJogMsg); pause(0.1);
             disp("Sent joint jogging message");
             try delete(self.jointJogPub); end
         end

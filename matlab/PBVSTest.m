@@ -9,8 +9,8 @@ ppr = PingPongRobot();
 ppr.PlotAndColourRobot();
 hold on;
 
-rosMasterURI = 'http://172.19.126.33:11311'; % default Ubuntu PC local IP
-rosIP = '172.19.119.56'; % default Windows PC (MATLAB) local IP
+rosMasterURI = 'http://192.168.1.118:11311'; % default Ubuntu PC local IP
+rosIP = '192.168.1.116'; % default Windows PC (MATLAB) local IP
 rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
 
 %% Start updating origin pose and joint angles
@@ -34,7 +34,7 @@ rosshutdown;
 %% PBVS ROS TEST
 try delete(pbvsRW); end;
 pbvsRW = LivePBVSWrapper(rosRW);
-pbvsRW.init(0.03, [320 240]);
+pbvsRW.init(0.03, [480 360]);
 pbvsRW.enableROSUpdate(true);
 
 %%
@@ -43,6 +43,12 @@ pbvsRW.startPBVS();
 pbvsRW.stopPBVS();
 %% manual
 pbvsRW.robotPBVSControl();
+
+%% while loop test
+while(1)
+    rosRW.updateRobot();
+    pbvsRW.robotPBVSControl();
+end
 %% QR square size (from centers)
 try delete(cam); end;
 close all; clc;

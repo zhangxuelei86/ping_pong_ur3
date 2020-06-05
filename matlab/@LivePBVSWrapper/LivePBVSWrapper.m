@@ -16,6 +16,7 @@ classdef LivePBVSWrapper < handle
         camTransform;
         camTrTopic;
         camTrSub;
+        camTrUpdated;
         
         qrImgOriginal;
         ptsOriginal;
@@ -31,11 +32,16 @@ classdef LivePBVSWrapper < handle
         qrInView;
         trQR;
         lambda;
+        maxManipulability;
+        jointSpeedLimit;
     end
     
     methods
         function self = LivePBVSWrapper(rosRW)
-            %LIVEPBVSWRAPPER 
+            %LIVEPBVSWRAPPER Contructor - initialise fixed properties such
+            %as EE transform from QR code, P controller gain and maximum
+            %manipulability value for singularity avoidance
+            
             self.rosRW = rosRW;
             self.updateFromROS = false;
             self.camImgTopic = '/ppr/robot_cam_img';
@@ -48,7 +54,10 @@ classdef LivePBVSWrapper < handle
             self.trQRtoEE = transl(0,0,0.1)*trotx(-pi/2)*trotz(pi/2);
             self.qrInView = false;
             
-            self.lambda = 0.5;
+            self.lambda = 1.5;
+            self.maxManipulability = 0.1;
+            self.jointSpeedLimit = deg2rad(180);
+            self.camTrUpdated = false;
             
             self.PBVSControlTimer = timer('StartDelay', 0, 'Period', 0.1, ...
                     'TasksToExecute', Inf, 'ExecutionMode', 'fixedSpacing');
@@ -62,6 +71,7 @@ classdef LivePBVSWrapper < handle
         
         function init(self, camFocal, camRes)
             %INIT Initialise cameras and other necessary objects
+            
             self.camFocal = camFocal;
             self.camRes = camRes;
             self.centralCam = CentralCamera('name', 'PBVScam', ...
@@ -103,23 +113,64 @@ classdef LivePBVSWrapper < handle
         end
         
         function setImage(self, img)
+            %SETIMAGE Manually sets the image (disables ROS update)
             self.updateFromROS = false;
             self.camImg = img;
         end
         
         function setCamTransform(self, camTransform)
+            %SETIMAGE Manually sets the camera transform (disables ROS update)
             self.updateFromROS = false;
             self.camTransform = camTransform;
         end
         
+        function updateCamTransform(self)
+            %UPDATECAMTRANSFORM Update the camera transform from ROS (does
+            %this once only)
+            camTrMsg = receive(self.camTrSub, 1);
+            if ~isempty(camTrMsg)
+                self.camTransform = ROSRobotWrapper.PoseStampedToTransform(camTrMsg);
+                self.camTrUpdated = true;
+            end
+        end
+        
+        function qdot = GetQDotFromEEVel(self, eeVel)
+            %GETQDOTFROMEEVEL Gets the joint velocities matrix from the
+            %end-effector's desired velocity, takes maximum joint velocity
+            %into account
+
+            jointConfig = self.rosRW.robot.model.getpos();
+            Jrobot = self.rosRW.robot.model.jacob0(jointConfig);
+            m = sqrt(det(Jrobot*Jrobot'));
+            if m < self.maxManipulability
+                qdot = pinv(Jrobot'*Jrobot + 0.01*eye(7))*Jrobot'*eeVel;
+            else
+                qdot = pinv(Jrobot) * eeVel;
+            end
+
+            % check speed limits
+            max_qdot = max(qdot(2:7));
+            if max_qdot > self.jointSpeedLimit
+                scale = self.jointSpeedLimit / max_qdot;
+                qdot(2:7) = scale*qdot(2:7);
+            end
+        end
+        
         function robotPBVSControl(self)
+            %ROBOTPBVSCONTROL When called, control the arm velocity by
+            %analysing the camera image, find and estimate the pose of the
+            %QR code, and make the end-effector go to the desired pose.
+            %This function should be called continously in a while loop to
+            %enables the 'safety' feature that retreats the robot
+            
             if self.updateFromROS
-                camTrMsg = self.camTrSub.LatestMessage;
-                camImgMsg = self.camImgSub.LatestMessage;
-                camImgMsg.Format = 'bgr8; jpeg compressed bgr8';
+                if ~ self.camTrUpdated
+                    self.updateCamTransform();
+                end
                 
-                if ~isempty(camTrMsg) && ~isempty(camImgMsg)
-                    self.camTransform = ROSRobotWrapper.PoseStampedToTransform(camTrMsg);
+                camImgMsg = receive(self.camImgSub, 1);
+                camImgMsg.Format = 'bgr8; jpeg compressed bgr8';
+                if ~isempty(camImgMsg)
                     self.camImg = readImage(camImgMsg);
                 end
             end
@@ -133,41 +184,29 @@ classdef LivePBVSWrapper < handle
                 % desired end-effector pose
                 poseDest = self.trQR*self.trQRtoEE;
                 
-                % deltaTransform
-%                 deltaTransform = inv(poseCurr)*poseDest;
+                % Find xyz rpy from current -> destination
                 poseDelta = poseDest - poseCurr;
-                deltaTransform = transl(poseDelta(1:3,4));
-                Rdot = poseDest(1:3,1:3) - poseCurr(1:3,1:3);
+                Rdot = poseDelta(1:3,1:3);
                 S = Rdot*poseDest(1:3,1:3)';
-                
-                % end-effector velocity (P controller)
-                xyz = deltaTransform(1:3,4)';
+                xyz = poseDelta(1:3,4)';
                 rpy = [S(3,2) S(1,3) S(2,1)];
                 error = [xyz rpy]';
+                
+                % end-effector velocity (P controller)
                 eeVel = self.lambda*error;
                 
-                % joint velocities
-                Jrobot = self.rosRW.robot.model.jacob0(jointConfig);
-                m = sqrt(det(Jrobot*Jrobot'));
-                if m < 0.1
-                    qdot = pinv(Jrobot'*Jrobot + 0.01*eye(7))*Jrobot'*eeVel;
-                else
-                    qdot = pinv(Jrobot) * eeVel;                                               % Solve velocitities via RMRC
-                end
-                
-                % check speed limits
-                max_qdot = max(qdot(2:7));
-                if max_qdot > deg2rad(180)
-                    scale = deg2rad(180) / max_qdot;
-                    qdot(2:7) = scale*qdot(2:7);
-                end
-                
+                qdot = self.GetQDotFromEEVel(eeVel);
+
                 % jog robot
                 self.rosRW.jogRobot(qdot);
             end
         end
         
         function analyseImg(self)
+            %ANALYSEIMG Analyse the camera image, using SURF Features to
+            %detect the QR code and functions from Peter Corke's Machine
+            %Vision Toolbox to estimate the QR code's pose in world frame
+            
             if isempty(self.camImg)
                 return;
             end
@@ -181,15 +220,13 @@ classdef LivePBVSWrapper < handle
 
             try
                 [tform,~,~] = estimateGeometricTransform(matchedPtsDistorted,matchedPtsOriginal, 'projective');
+                [newcorners(:,1), newcorners(:,2)] = ...
+                    transformPointsInverse(tform, self.qrCornersOriginal(:,1),self.qrCornersOriginal(:,2));
+                self.trQR = self.centralCam.estpose(self.qrCornersReal, newcorners');
+                self.trQR = self.camTransform*self.trQR;
+                self.qrInView = true;
             catch
                 self.qrInView = false;
-            end
-            self.qrInView = true;
-            try
-            [newcorners(:,1), newcorners(:,2)] = ...
-                transformPointsInverse(tform, self.qrCornersOriginal(:,1),self.qrCornersOriginal(:,2));
-            self.trQR = self.centralCam.estpose(self.qrCornersReal, newcorners');
-            self.trQR = self.camTransform*self.trQR;
             end
         end
     end

@@ -10,6 +10,7 @@ classdef ROSRobotWrapper < handle
         
         originTransformTopic;
         originTransformSub;
+        originUpdated;
         
         eStopTopic;
         eStopPub;
@@ -50,19 +51,32 @@ classdef ROSRobotWrapper < handle
                                "wrist_2_link",  ...
                                "wrist_3_link"];
             self.jointJogMsg.Name = self.jointNames;
+            self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
+            
+            self.originUpdated = false;
             
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
             self.robotUpdateTimer.TimerFcn = @(obj, event)updateRobot(self);
         end
         
+        function updateBasePose(self)
+            %UPDATEBASEPOSE Updates the robot base transform
+            originTransformMsg = receive(self.originTransformSub, 1);
+            if ~isempty(originTransformMsg)
+                self.robot.model.base = ROSRobotWrapper.PoseStampedToTransform(originTransformMsg);
+                self.originUpdated = true;
+                drawnow();
+            end
+        end
+        
         function updateRobot(self)
             %UPDATEROBOT Updates the robot base transform and joint angles
+            if ~self.originUpdated
+                self.updateBasePose();
+            end
             
-            originTransformMsg = self.originTransformSub.LatestMessage;
-            jointStateMsg = self.jointStateSub.LatestMessage;
-            
-            if ~isempty(originTransformMsg) && ~isempty(jointStateMsg)
-                self.robot.model.base = ROSRobotWrapper.PoseStampedToTransform(originTransformMsg);
+            jointStateMsg = receive(self.jointStateSub, 1);
+            if ~isempty(jointStateMsg)
                 self.robot.model.animate(jointStateMsg.Position');
                 drawnow();
             end
@@ -92,12 +106,9 @@ classdef ROSRobotWrapper < handle
         
         function jogRobot(self, velocities)
             %JOGROBOT Jogs the robot's joint velocities
-            
-            self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
             self.jointJogMsg.Velocity = velocities;
-            send(self.jointJogPub, self.jointJogMsg); pause(0.1);
+            send(self.jointJogPub, self.jointJogMsg);
             disp("Sent joint jogging message");
-            try delete(self.jointJogPub); end
         end
     end
     

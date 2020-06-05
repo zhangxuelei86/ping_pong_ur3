@@ -1,0 +1,29 @@
+classdef PathChecker < handle
+    properties
+        
+        robot; % PPR robot
+        obstaclesProcressor;
+        
+        currentPath;
+        
+        pathIndex;
+        
+    end
+    methods
+        
+        function self = PathChecker(robot, obstaclesProcessor)
+            
+            self.robot = robot;
+            self.obstaclesProcressor = obstaclesProcessor;
+            
+        end
+        
+        function setPath
+        
+        function setPathIndex(self, pathIndex)
+            self.pathIndex = pathIndex;
+        end
+        
+        function isNextJSOk = checkPath(self)
+    end
+end

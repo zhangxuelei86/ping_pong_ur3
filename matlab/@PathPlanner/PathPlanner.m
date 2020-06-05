@@ -265,6 +265,9 @@ classdef PathPlanner < handle
                 isQuintic = false;
             end
             
+            currentJointState = self.robot.model.getpos();
+            steps = self.stepsTotal;
+            
             if isQuintic
                 path = jtraj(currentJointState, qGoal, steps);
             else

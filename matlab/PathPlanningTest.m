@@ -9,40 +9,31 @@
     robot.PlotAndColourRobot();
     axis equal;
     hold on;
-    robot.model.animate([-0.4000         0   -1.0396    1.7544   -2.2689   -1.5708         0]);
+    qHome = [-0.4000         0   -1.0396    1.7544   -2.2689   -1.5708         0];
+    robot.model.animate(qHome);
     
     planner = PathPlanner(robot);
     
-%% New Order of PathPlanner Class
+%% Order of PathPlanner Class
 
 tr = robot.model.fkine(robot.model.getpos);
-planner.SetTargetInfo(tr(1:3,4)'+[-0.4,-0.075,0],[-0.2 -2 0],2);
+planner.SetTargetInfo(tr(1:3,4)'+[-0.4,-0.075,0],[-0.2 -2 0],2); % ball position at intersection, velocity and total time
 
-%%
+%% Compute the ball return action path 
 
 path  = planner.BallReturnPath();
-%%  
-    steps = 25;
-    tr = robot.model.fkine(robot.model.getpos);
-    cartTraj = planner.GenerateCartersianTrajectory(tr(1:3,4)'+[0.5 -0.1 0.1], [-0.2 -1 0]);
-    rot = zeros(3,steps);
-    for i = 1:steps
-        rot(:,i) = (tr2rpy(tr))';
-    end
-    cartTraj = [cartTraj; rot];
-    
-%%
-    planner.currentJointState = robot.model.getpos;
-    path = planner.RMRCTrajectory(2, cartTraj);
-    
-    planner.SetTargetPose(robot.model.fkine(path(1,:)),robot.model.getpos);
-    Ikpath = planner.IKTrajectory();
-    
-    path = [Ikpath; path];
-    
-    %%
+
+%% Visualize robot follow the calculated ball return path
 for i = 1:size(path,1)
     robot.model.animate(path(i,:));
-%     robot.model.fkine(robot.model.getpos);
+    drawnow();
+end
+
+%%  Compute path to return robot home
+ path = planner.FinalJointStatePath(qHome);
+
+ %% Visualize robot follow the calculated ball return path
+for i = 1:size(path,1)
+    robot.model.animate(path(i,:));
     drawnow();
 end

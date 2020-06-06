@@ -98,6 +98,21 @@ namespace Robot
             return true;
         }
 
+        public void jogRobot(JointJog jointJogCmd) {
+            _finished_traj = true;
+            foreach (RobotJoint joint in _joints) {
+                int joint_index = jointJogCmd.joint_names.LastIndexOf(joint.name);
+                if (joint.getJointType() == "prismatic")
+                {
+                    joint.setSpeed(jointJogCmd.velocities[joint_index]);
+                }
+                else
+                {
+                    joint.setSpeed(-Mathf.Rad2Deg*jointJogCmd.velocities[joint_index]);
+                }
+            }
+        }
+
         // check if most recent trajectory has been completed
         public bool finishedTrajectory() {
             return _finished_traj;

@@ -15,7 +15,6 @@ public class RobotJoint : MonoBehaviour
     public float offset = 0.0f;
     protected float _limit_min = -45;
     protected float _limit_max = 45;
-    protected float _speed_gain = 1.0f;
     protected bool _continuous = false;
     protected string _joint_type = "revolute";
 
@@ -44,14 +43,10 @@ public class RobotJoint : MonoBehaviour
         return true;
     }
 
-    public bool setGain(float gain) {
-        _speed_gain = gain;
-        return true;
-    }
-
     public bool setSpeed(float speed) {
         _pid_control = false;
         _speed = speed;
+        last_command_time = Time.fixedTime;
         return true;
     }
 
@@ -102,10 +97,9 @@ public class RobotJoint : MonoBehaviour
     // Checks whether a PID control has been sent recently
     // This is added to prevent the robot from keep moving if the final joint velocity is > 0
     protected void watchDogCheck() {
-        if(_pid_control) {
-            if(Time.fixedTime - last_command_time > watch_dog_timeout) {
-                setSpeed(0.0f); // also makes _pid_control = false
-            }
+        if(Time.fixedTime - last_command_time > watch_dog_timeout) {
+            _pid_control = false;
+            _speed = 0.0f;
         }
     }
 
@@ -123,12 +117,8 @@ public class RobotJoint : MonoBehaviour
             // Calculate speed again
             _speed += _pos_pid_kp*_pos_pid_cur_err + _pos_pid_ki*_pos_pid_sum_err*Time.fixedDeltaTime + _pos_pid_kd*(_pos_pid_dif_err/Time.fixedDeltaTime);
             _pos_pid_pre_err = _pos_pid_cur_err;
-
-            temp_position = _position + _speed*Time.fixedDeltaTime;
         }
-        else {
-            temp_position = _position + _speed*_speed_gain*Time.fixedDeltaTime;
-        }
+        temp_position = _position + _speed*Time.fixedDeltaTime;
 
         if(temp_position >= _limit_max) {
             if(_continuous) {

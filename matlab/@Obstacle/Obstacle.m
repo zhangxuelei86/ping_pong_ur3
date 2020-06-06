@@ -2,6 +2,7 @@ classdef Obstacle < handle
     properties
         
         position;
+        obstacle;
         
     end
     
@@ -12,12 +13,14 @@ classdef Obstacle < handle
         size;
         sizeInflationFactor = 0.1;
         
-        obstacle;
         obstaclePlot;
         plotTransparency = 0.7;
 
     end
     methods
+        %% Constructor
+        % An object of the Obstacle class must be created with it's position and
+        % size
         function self = Obstacle(size, position)
             
             self.size = size + self.sizeInflationFactor*ones(1,3);
@@ -27,6 +30,12 @@ classdef Obstacle < handle
             
         end
         
+        %% RectangularPrism
+        % Modified from the RectangularPrism function provided in the
+        % materials from the Robotics course
+        % The function creates the rectangular prism of the obstacle from
+        % the size and the centre location of the obstacle in world
+        % coordinates
         function obstacle = RectangularPrism(self)
             
             lower = self.position - self.size/2;
@@ -63,6 +72,9 @@ classdef Obstacle < handle
 
         end
         
+        %% PlotObstacle
+        % This function both adds the rectangular prism obstacle into the
+        % scene and can also be used to update the location of the obstacle
         function PlotObstacle(self, position)
             
             if 1<nargin
@@ -71,22 +83,39 @@ classdef Obstacle < handle
             end
 
             tcolor = [.2 .2 .8];
-            try delete(self.obstaclePlot); end
+            self.DeleteObstaclePlot();
             self.obstaclePlot =  patch('Faces',self.obstacle.faces,'Vertices' ...
                 ,self.obstacle.vertices,'FaceVertexCData',tcolor,'FaceColor', ...
                 'flat','lineStyle','none','FaceAlpha',self.plotTransparency);
             
         end
         
+        %% DeleteObstaclePlot
+        % This function deletes the current plot of the obstacle from the
+        % scene
+        function DeleteObstaclePlot(self)
+            
+            try delete(self.obstaclePlot); end
+            
+        end
+        
+        %% GetObstacle
+        % Returns the current obstacle and its charecteristics in the object
         function obstacle = GetObstacle(self)
             
             obstacle = self.obstacle;
             
         end
         
+        %% SetSizeInflation
+        % In the case where the obstacle inflation factor would like to be
+        % chnaged, this function is used to change it and the obstacle
+        % rectagular prism of the obstacle is recomputed
         function SetSizeInflation(self, factor)
             
             self.sizeInflationFactor = factor;
+            self.size = size + self.sizeInflationFactor*ones(1,3);
+            self.obstacle = self.RectangularPrism();
             
         end
         

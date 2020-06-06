@@ -7,13 +7,13 @@ clc;
 ppr = PingPongRobot();
 ppr.PlotAndColourRobot();
 
-rosMasterURI = 'http://172.19.127.190:11311'; % default Ubuntu PC local IP
+rosMasterURI = 'http://172.19.126.33:11311'; % default Ubuntu PC local IP
 rosIP = '172.19.119.56'; % default Windows PC (MATLAB) local IP
 rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
 
 %% Step 2: Initialise the JointTrajectoryPublisher
 % This takes ~ 5 seconds
-steps = 200; % important
+steps = 100; % important
 deltaT = 0.02;
 rosTP = ROSTrajectoryPublisher();
 rosTP.InitPublisher(steps);
@@ -55,6 +55,9 @@ qFinal = ppr.model.getpos()
 
 %% Step 6: Stop updating origin pose and joint angles
 rosRW.stopRobotUpdate();
+
+%% TESTING JOGGING
+rosRW.jogRobot([-0.05,0.2,-0.2,0,0,0,0]);
 
 %% Shutdown ROS
 rosshutdown;

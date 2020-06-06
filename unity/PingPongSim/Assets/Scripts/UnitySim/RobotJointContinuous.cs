@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class RobotJointContinuous : RobotJoint
 {
-    public float Gain;
     private HingeJoint _hinge_joint;
 
     void Start()
@@ -13,7 +12,6 @@ public class RobotJointContinuous : RobotJoint
         _joint_type = "continuous";
         _hinge_joint = GetComponent(typeof(HingeJoint)) as HingeJoint;
         setLimits(-180, 180);
-        setGain(Gain);
     }
 
     void FixedUpdate()

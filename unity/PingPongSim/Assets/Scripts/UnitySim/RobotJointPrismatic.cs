@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class RobotJointPrismatic : RobotJoint
 {
-    public float Gain;
     public float InitialPosition;
     private RosSharp.PrismaticJointLimitsManager _pris_joint_limits;
     private ConfigurableJoint _config_joint;
@@ -16,7 +15,6 @@ public class RobotJointPrismatic : RobotJoint
         _pris_joint_limits = GetComponent(typeof(RosSharp.PrismaticJointLimitsManager)) as RosSharp.PrismaticJointLimitsManager;
         _config_joint = GetComponent(typeof(ConfigurableJoint)) as ConfigurableJoint;
         setLimits(_pris_joint_limits.PositionLimitMin, _pris_joint_limits.PositionLimitMax);
-        setGain(Gain);
         setPosition(InitialPosition);
     }
 

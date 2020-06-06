@@ -108,10 +108,13 @@ classdef PathPlanner < handle
 
             x = cartesianTrajectory(1:3,:);
             theta = cartesianTrajectory(4:6,:);
-                        
+
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Traform of cartesian trajectory
+            TOffset = T*inv(self.robot.paddle);
+            Tdelta = TOffset - T;
+            x = homtrans(transl(Tdelta(1:3,4)), x);
             q0 = self.robot.model.getpos();                                                 
-            qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                
+            qMatrix(1,:) = self.robot.model.ikcon(TOffset,q0);                                
 
             for i = 1:steps-1
                 T = self.robot.model.fkine(qMatrix(i,:));                 % Get forward transformation at current joint state
@@ -208,9 +211,9 @@ classdef PathPlanner < handle
                 rpy = tr2rpy(tr);
                 roll = rpy(1)+pi/18;
                 if ballPosition(1)-tr(1,4) > 0
-                    yaw = atan2(diff(3),diff(1))+pi/2;
+                    yaw = atan2(diff(1),diff(2))+pi/2;
                 else
-                    yaw = atan2(diff(3),diff(1))-pi/2;
+                    yaw = atan2(diff(1),diff(2))-pi/2;
                 end
                     
                 pitch = rpy(2);

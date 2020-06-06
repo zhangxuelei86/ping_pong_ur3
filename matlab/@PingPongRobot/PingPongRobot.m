@@ -9,6 +9,8 @@ classdef PingPongRobot < handle
         %< Robot model
         model;
         
+        paddle;
+        
         %< Robot workspace
         workspace = [-1 1 -2 2 0 3];
 
@@ -65,6 +67,8 @@ classdef PingPongRobot < handle
             RobotLinks(7).qlim = deg2rad([-360 360]);
 
             self.model = SerialLink(RobotLinks,'name',self.name);
+            
+            self.paddle = transl(0,-0.15,0);
             
             % Rotate PingPong robot to the correct orientation
 %             self.model.base = transl(0.4,0,0) * self.model.base * trotx(pi/2) * troty(pi/2);

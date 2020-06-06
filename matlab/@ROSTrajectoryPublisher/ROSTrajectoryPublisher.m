@@ -54,7 +54,7 @@ classdef ROSTrajectoryPublisher < handle
                self.jointTrajMsg.Points(i,1).TimeFromStart.Nsec = deltaT_msec*(i-1);
             end
             self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
-            send(self.jointTrajPub, self.jointTrajMsg); pause(0.1);
+            send(self.jointTrajPub, self.jointTrajMsg); pause(0.2);
             disp("Joint Trajectory SENT to robot");
             try delete(self.jointTrajPub); end
             success = true; return;

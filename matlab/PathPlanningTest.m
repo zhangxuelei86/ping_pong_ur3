@@ -17,7 +17,7 @@
 %% Order of PathPlanner Class
 
 tr = robot.model.fkine(robot.model.getpos);
-planner.SetTargetInfo(tr(1:3,4)'+[-0.4,-0.075,0],[-0.2 -2 0],2); % ball position at intersection, velocity and total time
+planner.SetTargetInfo(tr(1:3,4)'+[0.4,-0.075,0],[1 -2 0],2); % ball position at intersection, velocity and total time
 
 %% Compute the ball return action path 
 

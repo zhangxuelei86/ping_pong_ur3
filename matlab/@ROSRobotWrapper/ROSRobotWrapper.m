@@ -71,9 +71,9 @@ classdef ROSRobotWrapper < handle
         
         function updateRobot(self)
             %UPDATEROBOT Updates the robot base transform and joint angles
-            if ~self.originUpdated
+%             if ~self.originUpdated
                 self.updateBasePose();
-            end
+%             end
             
             jointStateMsg = receive(self.jointStateSub, 1);
             if ~isempty(jointStateMsg)

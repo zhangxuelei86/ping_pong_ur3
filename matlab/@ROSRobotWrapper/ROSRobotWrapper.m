@@ -61,7 +61,7 @@ classdef ROSRobotWrapper < handle
         
         function updateBasePose(self)
             %UPDATEBASEPOSE Updates the robot base transform
-            originTransformMsg = receive(self.originTransformSub, 1);
+            originTransformMsg = self.originTransformSub.LatestMessage;
             if ~isempty(originTransformMsg)
                 self.robot.model.base = ROSRobotWrapper.PoseStampedToTransform(originTransformMsg);
                 self.originUpdated = true;
@@ -71,12 +71,15 @@ classdef ROSRobotWrapper < handle
         
         function updateRobot(self)
             %UPDATEROBOT Updates the robot base transform and joint angles
-%             if ~self.originUpdated
+            if ~self.originUpdated
                 self.updateBasePose();
-%             end
+            end
             
-            jointStateMsg = receive(self.jointStateSub, 1);
+            jointStateMsg = self.jointStateSub.LatestMessage;
             if ~isempty(jointStateMsg)
+                if jointStateMsg.Position(1) >= 0
+                    jointStateMsg.Position(1) = 0;
+                end
                 self.robot.model.animate(jointStateMsg.Position');
                 drawnow();
             end

@@ -1,0 +1,42 @@
+%% Ball Prediction Test Script
+% This script is used to test the ball trajectory prediction algorithm
+
+%% Test
+currentPos = [1, 1, 1];
+currentVel = [3, 3, 0];
+surfaceHeight = 1.3;
+
+rosMasterURI = 'http://172.19.126.33:11311'; % default Ubuntu PC local IP
+rosIP = '172.19.119.56'; % default Windows PC (MATLAB) local IP
+ppr = PingPongRobot();
+ppr.PlotAndColourRobot();
+rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
+hold on;
+
+%% Trajectory Publisher
+steps = 100;
+rosTP = ROSTrajectoryPublisher();
+rosTP.InitPublisher(steps);
+
+%
+rosSW = ROSSimWrapper();
+
+% try delete(pre_h); end
+% pre_h = plot3(positions(:,1)',positions(:,2)',positions(:,3)','k.','LineWidth',1);
+
+%%
+hittingBall = false;
+while(1)
+    rosRW.updateRobot();
+    rosSW.updateBall();
+    if rosSW.ballState == 1
+        if ~hittingBall
+            [position, velocity, time, success] = rosSW.findInterceptPoint();
+            if success
+                hittingBall = true;
+            end
+        end
+    else
+        hittingBall = false;
+    end
+end

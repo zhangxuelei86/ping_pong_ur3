@@ -4102,7 +4102,7 @@ GameObject:
   - component: {fileID: 1162229296}
   m_Layer: 9
   m_Name: Box
-  m_TagString: Untagged
+  m_TagString: robot_paddle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4190,7 +4190,7 @@ GameObject:
   - component: {fileID: 1176087270}
   m_Layer: 9
   m_Name: unnamed
-  m_TagString: Untagged
+  m_TagString: robot_paddle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4343,7 +4343,7 @@ GameObject:
   - component: {fileID: 1232205438}
   m_Layer: 10
   m_Name: Player Paddle
-  m_TagString: Untagged
+  m_TagString: player_paddle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4508,8 +4508,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PositionLimitMin: -0.8
-  PositionLimitMax: 0.1
-  Tolerance: 0.01
+  PositionLimitMax: 0.01
+  Tolerance: 0
 --- !u!153 &1250929698
 ConfigurableJoint:
   m_ObjectHideFlags: 0
@@ -5074,7 +5074,7 @@ GameObject:
   - component: {fileID: 1522885554}
   m_Layer: 9
   m_Name: ee_link
-  m_TagString: Untagged
+  m_TagString: robot_paddle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5246,6 +5246,8 @@ GameObject:
   - component: {fileID: 1567514507}
   - component: {fileID: 1567514508}
   - component: {fileID: 1567514509}
+  - component: {fileID: 1567514510}
+  - component: {fileID: 1567514511}
   m_Layer: 0
   m_Name: ROS Sharp
   m_TagString: Untagged
@@ -5282,7 +5284,7 @@ MonoBehaviour:
   SecondsTimeout: 10
   Serializer: 0
   protocol: 1
-  RosBridgeServerUrl: ws://172.19.126.33:9090
+  RosBridgeServerUrl: ws://10.42.0.1:9090
 --- !u!114 &1567514503
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5398,6 +5400,34 @@ MonoBehaviour:
   Topic: /ppr/robot_cam_pose
   PublishedTransform: {fileID: 816998833}
   FrameId: Unity
+--- !u!114 &1567514510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567514500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e954d75e4caf6428ae09131460d744, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Topic: /ball/twist
+  Ball: {fileID: 1696882270}
+--- !u!114 &1567514511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567514500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e2d366be70e51542b7bd8c0e715b83b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Topic: /ball/state
+  PingPongBall: {fileID: 1696882272}
 --- !u!1 &1615239096
 GameObject:
   m_ObjectHideFlags: 0
@@ -5704,6 +5734,8 @@ GameObject:
   - component: {fileID: 1696882267}
   - component: {fileID: 1696882270}
   - component: {fileID: 1696882266}
+  - component: {fileID: 1696882272}
+  - component: {fileID: 1696882271}
   m_Layer: 11
   m_Name: Ball
   m_TagString: Untagged
@@ -5777,7 +5809,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696882265}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.731, y: 2.186, z: 0}
+  m_LocalPosition: {x: -1.121, y: 1.57, z: 0}
   m_LocalScale: {x: 0.06, y: 0.06, z: 0.06}
   m_Children: []
   m_Father: {fileID: 0}
@@ -5799,6 +5831,31 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &1696882271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696882265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f08b846939e1924fb88e6dc3ff55517, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  VelocityScale: 1
+--- !u!114 &1696882272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696882265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c5a60b246312254285c2dcffbafe4b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1717280961
 GameObject:
   m_ObjectHideFlags: 8
@@ -6643,7 +6700,7 @@ GameObject:
   - component: {fileID: 1990909319}
   m_Layer: 10
   m_Name: Ping Pong Table
-  m_TagString: Untagged
+  m_TagString: table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

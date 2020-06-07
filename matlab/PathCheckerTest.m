@@ -4,6 +4,7 @@ function PathCheckerTest
     
     close all;
     clear
+    clc
     robot = PingPongRobot;
     robot.model.base = transl(0.4,0,0) * robot.model.base * trotx(pi/2) * troty(pi/2);
     robot.PlotAndColourRobot();
@@ -16,7 +17,7 @@ function PathCheckerTest
 
     %% Create Obstacles
     
-    obsSize = [0.5 0.5 0.5];
+    obsSize = [0.25 0.25 0.25];
     obstacles = cell(10,1);
     
     hold on;
@@ -35,7 +36,7 @@ function PathCheckerTest
     %% Create ObstaclesProcessor
     
     obsProc = ObstaclesProcessor(staticObstacles);
-    obsProc.UpdateDynamicObstacles(dynamicObstacles);
+%     obsProc.UpdateDynamicObstacles(dynamicObstacles);
     
     %% Create PathChecker
     
@@ -55,14 +56,23 @@ function PathCheckerTest
 
      %% Visualize robot follow the calculated ball return path
     count = 0;
+    randNum = round(rand(1)*100);
     for i = 1:size(path,1)
         robot.model.animate(path(i,:));
         pathCheck.SetPathIndex(i-1);
+        
+        tr = robot.model.fkine(path(i,:));
+        if (i == randNum)
+            obs = Obstacle(obsSize, tr(1:3,4)'-[obsSize(1) 0 0]);
+%             obs.PlotObstacle();
+            obsProc.UpdateDynamicObstacles({obs});
+        end
 
         nextJSOk = pathCheck.CheckPath();
         if ~nextJSOk
             disp("This joint state " + num2str(i) + " is in COLLISION with obstacles");
             count = count + 1;
+            break;
         end
 %         keyboard;
         

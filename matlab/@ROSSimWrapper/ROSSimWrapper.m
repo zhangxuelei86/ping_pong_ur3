@@ -15,6 +15,16 @@ classdef ROSSimWrapper < handle
         ballStateTopic;
         ballStateSub;
         
+        obsProc;
+        obsStaticTopic;
+        obsStaticSub;
+        obsDynamicTopic;
+        obsDynamicSub;
+        
+        trajIndex;
+        trajIndexTopic;
+        trajIndexSub;
+        
         ballPlot_h;
         prediction_h;
         intercept_h;
@@ -38,6 +48,16 @@ classdef ROSSimWrapper < handle
             self.ballState = 0;
             self.ballStateTopic = '/ball/state';
             self.ballStateSub = rossubscriber(self.ballStateTopic, 'std_msgs/UInt8');
+            
+            self.obsStaticTopic = '/obs/static';
+            self.obsStaticSub = rossubscriber(self.obsStaticTopic, 'sensor_msgs/PointCloud');
+            
+            self.obsDynamicTopic = '/obs/dynamic';
+            self.obsDynamicSub = rossubscriber(self.obsDynamicTopic, 'sensor_msgs/PointCloud');s
+        end
+        
+        function state = getBallState(self)
+            state = self.ballState;
         end
         
         function updateBall(self)
@@ -96,8 +116,8 @@ classdef ROSSimWrapper < handle
     end
     
     methods(Static)
-        % estimate future ball positions and velocities
         function [positions, velocities] = PredictBall(currentPos, currentVel, surfaceHeight, deltaT)
+            %PREDICTBALL Estimates future ball positions and velocities
             gravity = -9.81;
             bounciness = 0.75;
             

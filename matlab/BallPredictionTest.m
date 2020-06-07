@@ -19,7 +19,7 @@ velMatrix = zeros(steps,7);
 
 %% Path Planner
 planner = PathPlanner(ppr);
-planner.SetFixedTimeOffset(0.8);
+planner.SetFixedTimeOffset(0.7);
 
 %% Simulation Wrapper (Ball)
 rosSW = ROSSimWrapper(ppr);
@@ -31,7 +31,6 @@ rosSW = ROSSimWrapper(ppr);
 hittingBall = false;
 homed = true;
 hitTime = now;
-returnTime = now;
 waitTime = 3.0;
 while(1)
     rosRW.updateRobot();

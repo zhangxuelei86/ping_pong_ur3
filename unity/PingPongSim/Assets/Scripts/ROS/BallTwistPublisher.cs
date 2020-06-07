@@ -10,11 +10,7 @@ namespace RosSharp.RosBridgeClient
     public class BallTwistPublisher : UnityPublisher<MessageTypes.Geometry.Twist>
     {
         public Rigidbody Ball;
-
         private MessageTypes.Geometry.Twist message;
-        private float previousRealTime;        
-        private Vector3 previousPosition = Vector3.zero;
-
         protected override void Start()
         {
             base.Start();

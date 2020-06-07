@@ -21,6 +21,10 @@ classdef ROSRobotWrapper < handle
         jointJogMsg;
         jointNames;
         
+        trajIndex;
+        trajIndexTopic;
+        trajIndexSub;
+        
         robotUpdateTimer;
     end
     
@@ -53,10 +57,18 @@ classdef ROSRobotWrapper < handle
             self.jointJogMsg.Name = self.jointNames;
             self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
             
+            self.trajIndex = 0;
+            self.trajIndexTopic = '/ppr/traj_index';
+            self.trajIndexSub = rossubscriber(self.trajIndexTopic, 'std_msgs/UInt32');
+            
             self.originUpdated = false;
             
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
             self.robotUpdateTimer.TimerFcn = @(obj, event)updateRobot(self);
+        end
+        
+        function index = getCurrentTrajectoryIndex(self)
+            index = self.trajIndex;
         end
         
         function updateBasePose(self)
@@ -83,6 +95,12 @@ classdef ROSRobotWrapper < handle
                 self.robot.model.animate(jointStateMsg.Position');
                 drawnow();
             end
+            
+            trajIndexMsg = self.trajIndexSub.LatestMessage;
+            if ~isempty(trajIndexMsg)
+                self.trajIndex = trajIndexMsg.Data;
+            end
+            drawnow();
         end
         
         function startRobotUpdate(self)

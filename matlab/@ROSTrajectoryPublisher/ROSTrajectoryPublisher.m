@@ -31,6 +31,7 @@ classdef ROSTrajectoryPublisher < handle
                                "wrist_2_link",  ...
                                "wrist_3_link"];
             self.jointTrajMsg.JointNames = self.jointNames;
+            self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
 
             self.steps = 0;
         end
@@ -53,10 +54,9 @@ classdef ROSTrajectoryPublisher < handle
                self.jointTrajMsg.Points(i,1).Velocities = velMatrix(i,:);
                self.jointTrajMsg.Points(i,1).TimeFromStart.Nsec = round(deltaT_msec*(i-1));
             end
-            self.jointTrajPub = rospublisher(self.jointTrajTopic,self.dataType);
+            
             send(self.jointTrajPub, self.jointTrajMsg); pause(0.2);
             disp("Joint Trajectory SENT to robot");
-            try delete(self.jointTrajPub); end
             success = true; return;
         end
         

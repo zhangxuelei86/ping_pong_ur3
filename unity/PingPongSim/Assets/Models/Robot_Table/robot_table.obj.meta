@@ -39,9 +39,16 @@ ModelImporter:
     2100058: 20.001
     2100060: 21.001
     2100062: 22.001
+    2100064: Mat.002
+    2100066: Mat.008
+    2100068: Mat.5
+    2100070: Mat.4
+    2100072: None
+    2100074: Mat.6
     2300000: default
     3300000: default
     4300000: default
+    2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
     importMaterials: 1

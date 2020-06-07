@@ -99,7 +99,7 @@ classdef ROSSimWrapper < handle
         % estimate future ball positions and velocities
         function [positions, velocities] = PredictBall(currentPos, currentVel, surfaceHeight, deltaT)
             gravity = -9.81;
-            bounciness = 0.8;
+            bounciness = 0.75;
             
             positions = currentPos;
             velocities = currentVel;

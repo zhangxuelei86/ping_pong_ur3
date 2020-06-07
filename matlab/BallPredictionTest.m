@@ -12,13 +12,14 @@ hold on;
 
 %% Trajectory Publisher
 steps = 100;
+homeDeltaT = 0.02;
 rosTP = ROSTrajectoryPublisher();
 rosTP.InitPublisher(steps);
 velMatrix = zeros(steps,7);
 
 %% Path Planner
 planner = PathPlanner(ppr);
-planner.SetFixedTimeOffset(0.6);
+planner.SetFixedTimeOffset(0.8);
 
 %% Simulation Wrapper (Ball)
 rosSW = ROSSimWrapper(ppr);
@@ -28,7 +29,10 @@ rosSW = ROSSimWrapper(ppr);
 
 %%
 hittingBall = false;
-homed = false;
+homed = true;
+hitTime = now;
+returnTime = now;
+waitTime = 3.0;
 while(1)
     rosRW.updateRobot();
     rosSW.updateBall();
@@ -36,19 +40,29 @@ while(1)
         if ~hittingBall
             [position, velocity, time, success] = rosSW.findInterceptPoint();
             if success
-                tic
                 deltaT = time/steps;
                 planner.SetTargetInfo(position, velocity, time);
                 path = planner.BallReturnPath();
                 for i = 1:steps-1
                     velMatrix(i,:) = (path(i+1,:) - path(i,:))/deltaT;
                 end
-                toc
                 rosTP.SendTrajectory(path, velMatrix, deltaT);
                 hittingBall = true;
+                homed = false;
+                hitTime = now;
             end
         end
     else
+        if rosSW.ballState == 3 || (now-hitTime)*100000 > waitTime
+            if ~homed
+                path = planner.FinalJointStatePath(ppr.qHome);
+                for i = 1:steps-1
+                    velMatrix(i,:) = (path(i+1,:) - path(i,:))/homeDeltaT;
+                end
+                rosTP.SendTrajectory(path, velMatrix, homeDeltaT);
+                homed = true;
+            end
+        end
         hittingBall = false;
     end
 end

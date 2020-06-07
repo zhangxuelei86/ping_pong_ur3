@@ -210,7 +210,7 @@ classdef PathPlanner < handle
                 tr = self.robot.model.fkine(self.robot.model.getpos);
                 diff = endPt-startPt;
                 rpy = tr2rpy(tr);
-                roll = rpy(1)+pi/18;
+                roll = rpy(1)+pi/6;
                 if ballPosition(1)-tr(1,4) > 0
                     yaw = atan2(diff(1),diff(2))+pi/2;
                 else

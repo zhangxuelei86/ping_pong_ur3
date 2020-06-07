@@ -67,8 +67,10 @@ function PathCheckerTest
             obs = Obstacle(obsSize, tr(1:3,4)'-[obsSize(1) 0 0]);
             obsProc.UpdateDynamicObstacles({obs});
         end
-
+        
+        tic
         nextJSOk = pathCheck.CheckPath();
+        toc
         if ~nextJSOk
             disp("This joint state " + num2str(i) + " is in COLLISION with obstacles");
 %             count = count + 1;

@@ -44,12 +44,11 @@ classdef Simulation < handle
             self.trajCalculated = false;
             
             self.ppr = PingPongRobot();
+            self.ppr.PlotAndColourRobot(); hold on;
             self.unityRobotQ = self.ppr.model.getpos();
             
-            self.gameController = GameController(1);
-            
-            planner = PathPlanner(ppr);
-            planner.SetFixedTimeOffset(0.4);
+            self.planner = PathPlanner(self.ppr);
+            self.planner.SetFixedTimeOffset(0.4);
             disp("Created Simulation");
         end
         
@@ -64,22 +63,26 @@ classdef Simulation < handle
             self.rosMasterURI = rosMasterURI;
             self.rosIP = rosIP;
             
-            self.ppr.PlotAndColourRobot();
             disp("... Initialising ROSRobotWrapper");
             self.rosRW = ROSRobotWrapper(self.ppr, self.rosMasterURI, self.rosIP);
+            pause(3.0);
             disp("... Initialising LivePBVSWrapper");
             self.pbvsRW = LivePBVSWrapper(self.rosRW);
             self.pbvsRW.init(0.03, [480 360]);
             self.pbvsRW.enableROSUpdate(true);
+            pause(2.0);
             disp("... Initialising ROSTrajectoryPublisher");
             self.rosTP = ROSTrajectoryPublisher();
             self.rosTP.InitPublisher(self.trajSteps);
+            pause(1.0);
             disp("... Initialising ROSSimWrapper");
             self.rosSW = ROSSimWrapper(self.ppr);
+            pause(1.0);
             disp("... Initialising ObstaclesProcessor - Static");
             self.rosSW.updateObstacles('static');
             staticObstacles = self.rosSW.getObstacles('static');
             self.obsProc = ObstaclesProcessor(staticObstacles);
+            pause(1.0);
             disp("... Initialising PathChecker");
             self.pathChkr = PathChecker(self.ppr, self.obsProc);
             
@@ -106,6 +109,14 @@ classdef Simulation < handle
             disp("ROBOT E-STOPPED - PLEASE RE-INITIALISE");
         end
         
+        function addController(self, id)
+            try
+                self.gameController = GameController(id);
+            catch
+                disp("Cannot connect to controller");
+            end
+        end
+        
         function jogUnityRobotJoint(self, qdot)
             %JOGUNITYROBOTJOINT Jogs the robot by joint velocities
             self.rosRW.jogRobot(qdot);
@@ -126,7 +137,11 @@ classdef Simulation < handle
         
         function jogUnityRobotController(self)
             %JOGUNITYROBOTCONTROLLER Jogs the robot by controller input
-            endEffVel = self.gameController.GetContollerCommands()';
+            try
+                endEffVel = self.gameController.GetContollerCommands()';
+            catch
+                disp("Game Controller not connected");
+            end
             self.jogUnityRobotEE(endEffVel);
         end
         

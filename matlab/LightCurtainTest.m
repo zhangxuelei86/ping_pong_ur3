@@ -6,7 +6,7 @@ function LightCurtainTest
 
     %% Create sources and then light curtain group
     sources = [];
-    numSources = 1;
+    numSources = 5;
     
     for i = 1:numSources
         sources(i).origin = rand(1,3) .* randi([-1 1],1,3);
@@ -17,6 +17,6 @@ function LightCurtainTest
     lightCurt = LightCurtain(sources,true);
     
     %% Test points of breach in Light curtain
-    breached = lightCurt.CheckBreach([0.4 0.8 0]);
+    breached = lightCurt.CheckBreach([0.4 -1.1 0]);
 
 end

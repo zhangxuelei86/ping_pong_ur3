@@ -19,15 +19,17 @@ classdef LightCurtain < handle
             end
             
             for i = 1:length(sources)
+                
                 self.sources(i).origin = sources(i).origin;
                 self.sources(i).angDiff = sources(i).angDiff;
                 self.sources(i).yaw = sources(i).yaw;
-                
-                if plot
-                    self.PlotSourceRay(self.sources(i));
-                end
-                
+                                
             end
+            
+            if plot
+                self.PlotSourceRay();
+            end
+
         end
         
         %% AddNewSource
@@ -46,16 +48,18 @@ classdef LightCurtain < handle
         %% PlotSourceRay
         % This plots the rays of the light curtain based on the angular
         % difference
-        function PlotSourceRay(self, source)
+        function PlotSourceRay(self)
 
             if ~ishold
                 hold on;
             end
-
-            for i = source.yaw-90:source.angDiff:source.yaw+90
-                x = source.origin(1) + self.maxDistance * cos(deg2rad(i));
-                y = source.origin(2) + self.maxDistance * sin(deg2rad(i));
-                plot3(gca,[source.origin(1),x],[source.origin(2),y],[source.origin(3),source.origin(3)],"r--");
+            
+            for j = 1:length(self.sources)
+                for i = self.sources(j).yaw-90:self.sources(j).angDiff:self.sources(j).yaw+90
+                    x = self.sources(j).origin(1) + self.maxDistance * cos(deg2rad(i));
+                    y = self.sources(j).origin(2) + self.maxDistance * sin(deg2rad(i));
+                    plot3(gca,[self.sources(j).origin(1),x],[self.sources(j).origin(2),y],[self.sources(j).origin(3),self.sources(j).origin(3)],"r--");
+                end
             end
 
         end

@@ -259,8 +259,7 @@ classdef Simulation < handle
             waitTime = 3.0 / 100000; % 3 seconds
             
             % sheep pose for Light curtain test
-            self.sheepTestPose = transl(1,-1.5,0) * trotz(-pi/4);
-            self.SetupLightCurtain();
+            self.sheepTestPose = trans(1,-1.5,0) * trotz(-pi/4);
             
             self.rosRW.eStopRobot(false);
             self.currentTraj = [];
@@ -350,10 +349,10 @@ classdef Simulation < handle
             
             base = self.ppr.model.base();
             
-            sources(1) = struct('origin',[base(1,4)+0.35,base(2,4),0.25],'angDiff',5,'yaw',0);
-            sources(2) = struct('origin',[base(1,4)-0.35,base(2,4),0.25],'angDiff',5,'yaw',180);
-            sources(3) = struct('origin',[base(1,4),base(2,4)+0.25,0.25],'angDiff',5,'yaw',90);
-            sources(4) = struct('origin',[base(1,4),base(2,4)-0.25,0.25],'angDiff',5,'yaw',270);
+            sources(1) = struct('origin',[base(1,4)+0,35,base(2,4)+0.35,0.25],'angDiff',5,'yaw',0);
+            sources(2) = struct('origin',[0.25],'angDiff',5,'yaw',90);
+            sources(3) = struct('origin',[0.25],'angDiff',5,'yaw',180);
+            sources(4) = struct('origin',[0.25],'angDiff',5,'yaw',270);
             
             self.lightCtn = LightCurtain(sources);
             

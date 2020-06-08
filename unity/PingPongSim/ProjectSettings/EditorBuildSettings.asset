@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/PingPongSim.unity
+    guid: 78940ed4dc8222847a203226bb27efbd
   m_configObjects: {}

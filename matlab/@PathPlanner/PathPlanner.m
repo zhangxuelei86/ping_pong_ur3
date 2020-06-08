@@ -163,14 +163,15 @@ classdef PathPlanner < handle
         % robot and the flag what states if the ball is reachable or not
         function [cartTraj, isReachable] = GenerateCartersianTrajectory(self)
             
+            cartTraj = []; % put this here so that it does not give an error
+            
             % The cartesian trjectory generator has the same number of
             % steps as the RMRC trajectory
             steps = 0.24 * self.stepsTotal;
             
             ballPosition = self.targetPosition;
             ballVelocity = self.targetVel;
-            ballPositionInRobotBaseTr = homtrans(self.robot.model.base, ballPosition');
-%             ballPositionInRobotBaseTr = ballPoseInRobotBaseTr(1:3,4)
+            robotBaseTr = self.robot.model.base;
                         
             % Check if the norm of the velocity vector is greater than the
             % set threshold
@@ -193,7 +194,7 @@ classdef PathPlanner < handle
             % based on the incoming velocity of the ball (speed and direction)
             % A cartesian trajectory of the hit motion is then computed using the trapezoidal
             % velocity profile
-            if self.robot.CheckPointsInRobotWorkspace(ballPosition) && ballPositionInRobotBaseTr(3)>=0
+            if self.robot.CheckPointsInRobotWorkspace(ballPosition) && ballPosition(3)>=robotBaseTr(3)
             
                 startPt = ballPosition + ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
                 endPt = ballPosition - ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
@@ -209,7 +210,7 @@ classdef PathPlanner < handle
                 tr = self.robot.model.fkine(self.robot.model.getpos);
                 diff = endPt-startPt;
                 rpy = tr2rpy(tr);
-                roll = rpy(1)+pi/18;
+                roll = rpy(1)+pi/6;
                 if ballPosition(1)-tr(1,4) > 0
                     yaw = atan2(diff(1),diff(2))+pi/2;
                 else

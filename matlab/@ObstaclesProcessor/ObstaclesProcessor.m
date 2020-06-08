@@ -45,7 +45,7 @@ classdef ObstaclesProcessor < handle
         % scene as they move or pop up in the scene
         function UpdateDynamicObstacles(self, dynamicObstacles)
             
-            for i = 1 : size(self.dynamicObstacles,1)
+            for i = 1 : size(self.dynamicObstacles,2)
                 self.dynamicObstacles{i}.DeleteObstaclePlot();
             end
                 

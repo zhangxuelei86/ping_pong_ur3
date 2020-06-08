@@ -126,7 +126,7 @@ classdef PingPongRobot < handle
             % adding transform of the paddle
             tr(:,:,end) = tr(:,:,end-1)*self.paddle;
 
-            robotLinksTransforms = tr;
+            robotLinksTransforms = tr(:,:,2:end);
 
         end
         

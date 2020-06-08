@@ -44,8 +44,6 @@ classdef Simulation < handle
             self.trajCalculated = false;
             
             self.ppr = PingPongRobot();
-            self.ppr.PlotAndColourRobot(); hold on;
-            self.unityRobotQ = self.ppr.model.getpos();
             
             self.planner = PathPlanner(self.ppr);
             self.planner.SetFixedTimeOffset(0.4);
@@ -62,6 +60,9 @@ classdef Simulation < handle
 
             self.rosMasterURI = rosMasterURI;
             self.rosIP = rosIP;
+            
+            self.ppr.PlotAndColourRobot(); hold on;
+            self.unityRobotQ = self.ppr.model.getpos();
             
             disp("... Initialising ROSRobotWrapper");
             self.rosRW = ROSRobotWrapper(self.ppr, self.rosMasterURI, self.rosIP);
@@ -139,7 +140,7 @@ classdef Simulation < handle
         function jogUnityRobotController(self)
             %JOGUNITYROBOTCONTROLLER Jogs the robot by controller input
             try
-                endEffVel = self.gameController.GetContollerCommands()';
+                endEffVel = self.gameController.GetContollerCommands();
             catch
                 disp("Game Controller not connected");
             end
@@ -173,10 +174,13 @@ classdef Simulation < handle
             %plays a MATLAB-only animation.
             %   You need to call this function before moving the Unity
             %   Robot in Teach mode
+            self.ppr.model.animate(self.unityRobotQ);
             self.currentTraj = self.planner.FinalJointStatePath(qGoal, isQuintic);
             self.trajCalculated = true;
+            deltaT = self.normalTrajTime/self.trajSteps;
             for i = 1:self.trajSteps
                 self.ppr.model.animate(self.currentTraj(i,:));
+                pause(deltaT);
                 drawnow();
             end
         end
@@ -201,6 +205,12 @@ classdef Simulation < handle
             success = true;
         end
         
+        function q = getUnityRobotQ(self)
+            self.rosRW.updateRobot();
+            self.unityRobotQ = self.ppr.model.getpos();
+            q = self.unityRobotQ;
+        end
+        
         function homeRobot(self)
             %HOMEROBOT Homes the robot
             %   This function is NOT blocking, and it is used in playing
@@ -214,6 +224,7 @@ classdef Simulation < handle
             if ~self.initialised
                 return
             end
+            self.rosRW.eStopRobot(false);
             deltaT = totalTime / self.trajSteps;
             for i = 1:self.trajSteps-1
                 self.velMatrix(i,:) = (path(i+1,:) - path(i,:))/deltaT;

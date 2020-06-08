@@ -65,7 +65,7 @@ classdef Simulation < handle
             
             disp("... Initialising ROSRobotWrapper");
             self.rosRW = ROSRobotWrapper(self.ppr, self.rosMasterURI, self.rosIP);
-            pause(3.0);
+            pause(2.0);
             disp("... Initialising LivePBVSWrapper");
             self.pbvsRW = LivePBVSWrapper(self.rosRW);
             self.pbvsRW.init(0.03, [480 360]);
@@ -87,6 +87,7 @@ classdef Simulation < handle
             self.pathChkr = PathChecker(self.ppr, self.obsProc);
             
             self.initialised = true;
+            self.rosRW.updateRobot();
             disp("Finished Simulation Initialisation");
         end
         

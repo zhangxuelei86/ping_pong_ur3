@@ -9,8 +9,8 @@ ppr = PingPongRobot();
 ppr.PlotAndColourRobot();
 hold on;
 
-rosMasterURI = 'http://192.168.1.118:11311'; % default Ubuntu PC local IP
-rosIP = '192.168.1.116'; % default Windows PC (MATLAB) local IP
+rosMasterURI = 'http://192.168.56.101:11311'; % default Ubuntu PC local IP
+rosIP = '192.168.56.1'; % default Windows PC (MATLAB) local IP
 rosRW = ROSRobotWrapper(ppr, rosMasterURI, rosIP);
 
 %% Start updating origin pose and joint angles

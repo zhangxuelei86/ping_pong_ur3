@@ -2,18 +2,32 @@
 function PathCheckerTest
     %% Create Robot, PathPlanner, ObstaclesProcessor
     
-    close all;
-    clear
-    clc
+%     close all;
+%     clear
+%     clc
+    app = PingPongRobotApp;
+    ax = app.UIAxes;
+    hold(ax, "on");
+%%     
+%     p1 = [0 0 0];
+%     p2 = [1 1 1];
+%     plot3(ax,[p1(1),p2(1)],[p1(2),p2(2)],[p1(3),p2(3)],"r--");
+    
     robot = PingPongRobot;
     robot.model.base = transl(0.4,0,0) * robot.model.base * trotx(pi/2) * troty(pi/2);
     robot.PlotAndColourRobot();
-    axis equal;
-    hold on;
+    
+    robotAx = gca;
+    robotAxChil = robotAx.Children;
+    copyobj(robotAxChil, app.UIAxes);
+%     axis equal;
+%     hold on;
     qHome = [-0.4000         0   -1.0396    1.7544   -2.2689   -1.5708         0];
     robot.model.animate(qHome);
     
     pathPlanner = PathPlanner(robot);
+
+    axis(ax, "equal");
 
     %% Create Obstacles
     
@@ -67,8 +81,10 @@ function PathCheckerTest
             obs = Obstacle(obsSize, tr(1:3,4)'-[obsSize(1) 0 0]);
             obsProc.UpdateDynamicObstacles({obs});
         end
-
+        
+        tic
         nextJSOk = pathCheck.CheckPath();
+        toc
         if ~nextJSOk
             disp("This joint state " + num2str(i) + " is in COLLISION with obstacles");
 %             count = count + 1;

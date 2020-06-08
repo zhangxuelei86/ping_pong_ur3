@@ -243,7 +243,7 @@ classdef PathPlanner < handle
         % The function return the total computed path using Inverse
         % Kinematics and RMRC to the path to return the incoming ping pong
         % ball
-        function path = BallReturnPath(self)
+        function [path, time] = BallReturnPath(self)
             
             [cartTraj, isReachable] = self.GenerateCartersianTrajectory();
             
@@ -253,6 +253,7 @@ classdef PathPlanner < handle
                 IKTraj = self.IKTrajectory(self.robot.model.fkine(RMRCTraj(1,:)), true);
                 
                 path = [IKTraj; RMRCTraj];
+                time = self.totalTime;
                 self.path = path;
                 
             else

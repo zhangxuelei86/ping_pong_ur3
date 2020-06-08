@@ -53,6 +53,7 @@ classdef ObstaclesProcessor < handle
             
             for i = 1 : size(dynamicObstacles,1)
                 self.dynamicObstacles{i} = Obstacle(dynamicObstacles{i}.size, dynamicObstacles{i}.position);
+                self.dynamicObstacles{i}.SetPlotTransparency(0.6);
                 self.dynamicObstacles{i}.PlotObstacle();
             end
             

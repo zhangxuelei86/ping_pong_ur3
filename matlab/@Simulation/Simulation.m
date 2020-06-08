@@ -15,6 +15,9 @@ classdef Simulation < handle
         obsProc;
         pathChkr;
         
+        gameController;
+        joggingVel;
+        
         initialised;
         
         trajSteps;
@@ -23,7 +26,7 @@ classdef Simulation < handle
 
         playing;
         unityRobotQ;
-        predictedTraj;
+        currentTraj;
         trajCalculated;
         normalTrajTime;
     end
@@ -37,11 +40,13 @@ classdef Simulation < handle
             self.homingTime = 1.0;
             self.normalTrajTime = 2.0;
             self.velMatrix = zeros(self.trajSteps,7);
-            self.predictedTraj = zeros(self.trajSteps,7);
+            self.currentTraj = [];
             self.trajCalculated = false;
             
             self.ppr = PingPongRobot();
             self.unityRobotQ = self.ppr.model.getpos();
+            
+            self.gameController = GameController(1);
             
             planner = PathPlanner(ppr);
             planner.SetFixedTimeOffset(0.4);
@@ -51,7 +56,7 @@ classdef Simulation < handle
         function init(self, rosMasterURI, rosIP)
             %INIT Initialise the rest of the objects with IP addresses
             %   You MUST call this function before running anything else.
-            %   It might take a while (~ 10 seconds), so it might freeze
+            %   It might take a while (~ 15 seconds), so it might freeze
             %   the GUI a bit.
             self.initialised = false;
             self.playing = false;
@@ -101,12 +106,36 @@ classdef Simulation < handle
             disp("ROBOT E-STOPPED - PLEASE RE-INITIALISE");
         end
         
+        function jogUnityRobotJoint(self, qdot)
+            %JOGUNITYROBOTJOINT Jogs the robot by joint velocities
+            self.rosRW.jogRobot(qdot);
+            self.rosRW.updateRobot();
+            self.unityRobotQ = self.ppr.model.getpos();
+            drawnow();
+        end
+        
+        function jogUnityRobotEE(self, endEffVel)
+            %JOGUNITYROBOTEE Jogs the robot by end-effector velocity
+            self.rosRW.updateRobot();
+            qdot = LivePBVSWrapper.GetQDotFromEEVel(self.ppr, endEffVel);
+            self.rosRW.jogRobot(qdot);
+            self.rosRW.updateRobot();
+            self.unityRobotQ = self.ppr.model.getpos();
+            drawnow();
+        end
+        
+        function jogUnityRobotController(self)
+            %JOGUNITYROBOTCONTROLLER Jogs the robot by controller input
+            endEffVel = self.gameController.GetContollerCommands()';
+            self.jogUnityRobotEE(endEffVel);
+        end
+        
         function eePose = setMATLABRobotQ(self, q)
             %SETMATLABROBOTQ Gets the ee pose from input joint config
             %   It will also:
             %   - Stops the robot from playing ping pong
             %   - Animate (snaps) the robot to the set joint config
-            self.stopPlaying(); pause(0.2);
+            self.stopPlaying();
             self.trajCalculated = false;
             eePose = self.ppr.model.fkine(q);
             self.ppr.model.animate(q);
@@ -117,7 +146,7 @@ classdef Simulation < handle
             %   It will also:
             %   - Stops the robot from playing ping pong
             %   - Animate (snaps) the robot to the calculated joint config
-            self.stopPlaying(); pause(0.2);
+            self.stopPlaying();
             self.trajCalculated = false;
             q = self.ppr.model.ikcon(eePose, self.unityRobotQ);
             self.ppr.model.animate(q);
@@ -128,10 +157,10 @@ classdef Simulation < handle
             %plays a MATLAB-only animation.
             %   You need to call this function before moving the Unity
             %   Robot in Teach mode
-            self.predictedTraj = self.planner.FinalJointStatePath(qGoal, isQuintic);
+            self.currentTraj = self.planner.FinalJointStatePath(qGoal, isQuintic);
             self.trajCalculated = true;
             for i = 1:self.trajSteps
-                self.ppr.model.animate(self.predictedTraj(i,:));
+                self.ppr.model.animate(self.currentTraj(i,:));
                 drawnow();
             end
         end
@@ -146,20 +175,21 @@ classdef Simulation < handle
                 disp("You need to calculate and preview motion first!");
                 return
             end
-            self.sendRobotPath(self.predictedTraj, self.normalTrajTime);
+            self.sendRobotPath(self.currentTraj, self.normalTrajTime);
             self.rosRW.updateRobot();
             while self.rosRW.getCurrentTrajectoryIndex() < 100
                 self.rosRW.updateRobot();
                 drawnow();
             end
             self.unityRobotQ = self.ppr.model.getpos();
+            success = true;
         end
         
         function homeRobot(self)
             %HOMEROBOT Homes the robot
             %   This function is NOT blocking, and it is used in playing
-            path = self.planner.FinalJointStatePath(self.ppr.qHome);
-            self.sendRobotPath(path, self.homingTime);
+            self.currentTraj = self.planner.FinalJointStatePath(self.ppr.qHome);
+            self.sendRobotPath(self.currentTraj, self.homingTime);
         end
 
         function sendRobotPath(self, path, totalTime)
@@ -179,7 +209,11 @@ classdef Simulation < handle
             %STOPPLAYING Pauses the playing mode
             %   This clears a flag that will stop the while loop that runs
             %   in startPlaying()
-            self.playing = false;
+            if self.playing
+                self.rosRW.eStopRobot(true);
+                self.playing = false;
+                pause(0.2);
+            end
         end
 
         function startPlaying(self)
@@ -200,6 +234,7 @@ classdef Simulation < handle
             waitTime = 3.0 / 100000; % 3 seconds
             
             self.rosRW.eStopRobot(false);
+            self.currentTraj = [];
             while(self.playing)
                 self.rosRW.updateRobot();
                 self.unityRobotQ = self.ppr.model.getpos();
@@ -218,6 +253,23 @@ classdef Simulation < handle
                 dynamicObstacles = self.rosSW.getObstacles('dynamic');
                 self.obsProc.UpdateDynamicObstacles(dynamicObstacles);
                 
+                index = self.rosRW.getCurrentTrajectoryIndex();
+                if index == 100 % if finished current trajectory
+                    self.currentTraj = [];
+                end
+                % if trajectory is finished, no need for checking
+                if ~isempty(self.currentTraj)
+                    % Collisions checking
+                    self.pathChkr.SetCurrentPath(self.currentTraj);
+                    self.pathChkr.SetPathIndex(index);
+                    nextJSOk = self.pathChkr.CheckPath();
+                    if ~nextJSOk
+                        self.rosRW.eStopRobot(true);
+                        self.currentTraj = [];
+                        disp("Potential collision detected at index #" + num2str(index));
+                    end
+                end
+                
                 drawnow();
                 
                 if self.rosSW.getBallState() == 1 % ball left player paddle
@@ -226,8 +278,8 @@ classdef Simulation < handle
                         [position, velocity, time, success] = self.rosSW.findInterceptPoint();
                         if success % if not, ball is out of reach
                             self.planner.SetTargetInfo(position, velocity, time);
-                            [path, time] = self.planner.BallReturnPath();
-                            self.sendRobotPath(path, time);
+                            [self.currentTraj, time] = self.planner.BallReturnPath();
+                            self.sendRobotPath(self.currentTraj, time);
                             hittingBall = true;
                             homed = false;
                             hitTime = now;

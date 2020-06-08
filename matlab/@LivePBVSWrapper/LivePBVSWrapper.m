@@ -97,6 +97,10 @@ classdef LivePBVSWrapper < handle
             self.qrCornersReal = [realCorner1 realCorner2 realCorner3 realCorner4];
         end
         
+        function status = isQRInView(self)
+            status = self.qrInView;
+        end
+        
         function enableROSUpdate(self, status)
             self.updateFromROS = status;
         end

@@ -24,8 +24,13 @@ planner.SetFixedTimeOffset(0.7);
 %% Simulation Wrapper (Ball)
 rosSW = ROSSimWrapper(ppr);
 
-% try delete(pre_h); end
-% pre_h = plot3(positions(:,1)',positions(:,2)',positions(:,3)','k.','LineWidth',1);
+%% ObstaclesProcessor
+rosSW.updateObstacles('static');
+staticObstacles = rosSW.getObstacles('static');
+obsProc = ObstaclesProcessor(staticObstacles);
+
+%% PathChecker
+pathCheck = PathChecker(ppr, obsProc);
 
 %%
 hittingBall = false;
@@ -35,6 +40,11 @@ waitTime = 3.0;
 while(1)
     rosRW.updateRobot();
     rosSW.updateBall();
+    rosSW.updateObstacles('dynamic');
+    
+    dynamicObstacles = rosSW.getObstacles('dynamic');
+    obsProc.UpdateDynamicObstacles(dynamicObstacles);
+    
     if rosSW.ballState == 1
         if ~hittingBall
             [position, velocity, time, success] = rosSW.findInterceptPoint();

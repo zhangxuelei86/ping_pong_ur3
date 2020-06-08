@@ -15,7 +15,8 @@ classdef ROSSimWrapper < handle
         ballStateTopic;
         ballStateSub;
         
-        obsProc;
+        obsStatic;
+        obsDynamic;
         obsStaticTopic;
         obsStaticSub;
         obsDynamicTopic;
@@ -49,15 +50,63 @@ classdef ROSSimWrapper < handle
             self.ballStateTopic = '/ball/state';
             self.ballStateSub = rossubscriber(self.ballStateTopic, 'std_msgs/UInt8');
             
+            self.obsStatic = {};
+            self.obsDynamic = {};
+            
             self.obsStaticTopic = '/obs/static';
             self.obsStaticSub = rossubscriber(self.obsStaticTopic, 'sensor_msgs/PointCloud');
             
             self.obsDynamicTopic = '/obs/dynamic';
-            self.obsDynamicSub = rossubscriber(self.obsDynamicTopic, 'sensor_msgs/PointCloud');s
+            self.obsDynamicSub = rossubscriber(self.obsDynamicTopic, 'sensor_msgs/PointCloud');
         end
         
         function state = getBallState(self)
             state = self.ballState;
+        end
+        
+        function obs = getObstacles(self, type)
+            obs = {};
+            switch type
+                case 'static'
+                    obs = self.obsStatic;
+                case 'dynamic'
+                    obs = self.obsDynamic;
+            end
+        end
+        
+        function updateObstacles(self, type)
+            switch type
+                case 'static'
+                    obsMsg = self.obsStaticSub.LatestMessage;
+                case 'dynamic'
+                    obsMsg = self.obsDynamicSub.LatestMessage;
+            end
+            if ~isempty(obsMsg)
+                points = obsMsg.Points;
+                channels = obsMsg.Channels;
+                obs = cell(size(points,1), 1);
+                for i = 1:size(points,1)
+                    obsSize = [0,0,0];
+                    for channelIndex = 1:size(channels,1)
+                        switch channels(channelIndex,1).Name
+                            case "xWidths"
+                                obsSize(1) = channels(channelIndex,1).Values(i);
+                            case "yWidths"
+                                obsSize(2) = channels(channelIndex,1).Values(i);
+                            case "heights"
+                                obsSize(3) = channels(channelIndex,1).Values(i);
+                        end
+                    end
+                    obsPosition = [points(i,1).X, points(i,1).Y, points(i,1).Z];
+                    obs{i} = Obstacle(obsSize,obsPosition);
+                end    
+                switch type
+                    case 'static'
+                        self.obsStatic = obs;
+                    case 'dynamic'
+                        self.obsDynamic = obs;
+                end
+            end
         end
         
         function updateBall(self)

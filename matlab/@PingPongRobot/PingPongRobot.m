@@ -14,6 +14,7 @@ classdef PingPongRobot < handle
         %< Robot workspace
         workspace = [-1 1 -2 2 0 3];
 
+        qHome = [-0.4000 0 -1.0396 1.7544 -2.2689 -1.5708 0];
     end
     
     properties (Access = private)
@@ -134,7 +135,7 @@ classdef PingPongRobot < handle
             
             robotBase = homtrans(self.model.base,transl(0,0,-0.4));
             robotBaseCentre = robotBase(1:3,4)';
-            ellipsoidRadii = [0.8,0.45,0.5];
+            ellipsoidRadii = [0.8,0.55,0.6];
             
 %             [X Y Z] = ellipsoid(robotBaseCentre(1),robotBaseCentre(2),robotBaseCentre(3),ellipsoidRadii(1),ellipsoidRadii(2),ellipsoidRadii(3));
 %             surf(X,Y,Z);

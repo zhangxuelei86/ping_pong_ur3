@@ -48,8 +48,8 @@ classdef EnvironmentComponent < handle
             obj.meshVertexCount = size(v,1);
 
             % Move center point to origin of mesh
-            midPoint = sum(v)/obj.meshVertexCount;
-            obj.meshVerts = v - repmat(midPoint,obj.meshVertexCount,1);
+            % midPoint = sum(v)/obj.meshVertexCount;
+            obj.meshVerts = v; % - repmat(midPoint,obj.meshVertexCount,1);
 
             % Scale the colours to be 0-to-1 (they are originally 0-to-255)
             vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;

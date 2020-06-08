@@ -42,11 +42,11 @@ function PathCheckerTest
     
     %% Seperate static and dynamic obstacles
     
-%     staticObstacles = obstacles(1:7);
-%     dynamicObstacles = obstacles(8:10);
     staticObstacles = obstacles(1);
-    dynamicObstacles = obstacles(8);
-    
+    dynamicObstacles = obstacles(8:10);
+%     staticObstacles = obstacles(1);
+%     dynamicObstacles = obstacles(8);
+%     
     %% Create ObstaclesProcessor
     
     obsProc = ObstaclesProcessor(staticObstacles);

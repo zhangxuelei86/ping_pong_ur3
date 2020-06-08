@@ -21,6 +21,10 @@ classdef ROSRobotWrapper < handle
         jointJogMsg;
         jointNames;
         
+        trajIndex;
+        trajIndexTopic;
+        trajIndexSub;
+        
         robotUpdateTimer;
     end
     
@@ -53,15 +57,23 @@ classdef ROSRobotWrapper < handle
             self.jointJogMsg.Name = self.jointNames;
             self.jointJogPub = rospublisher(self.jointJogTopic,'sensor_msgs/JointState');
             
+            self.trajIndex = 0;
+            self.trajIndexTopic = '/ppr/traj_index';
+            self.trajIndexSub = rossubscriber(self.trajIndexTopic, 'std_msgs/UInt32');
+            
             self.originUpdated = false;
             
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
             self.robotUpdateTimer.TimerFcn = @(obj, event)updateRobot(self);
         end
         
+        function index = getCurrentTrajectoryIndex(self)
+            index = self.trajIndex;
+        end
+        
         function updateBasePose(self)
             %UPDATEBASEPOSE Updates the robot base transform
-            originTransformMsg = receive(self.originTransformSub, 1);
+            originTransformMsg = self.originTransformSub.LatestMessage;
             if ~isempty(originTransformMsg)
                 self.robot.model.base = ROSRobotWrapper.PoseStampedToTransform(originTransformMsg);
                 self.originUpdated = true;
@@ -71,15 +83,24 @@ classdef ROSRobotWrapper < handle
         
         function updateRobot(self)
             %UPDATEROBOT Updates the robot base transform and joint angles
-%             if ~self.originUpdated
+            if ~self.originUpdated
                 self.updateBasePose();
-%             end
+            end
             
-            jointStateMsg = receive(self.jointStateSub, 1);
+            jointStateMsg = self.jointStateSub.LatestMessage;
             if ~isempty(jointStateMsg)
+                if jointStateMsg.Position(1) >= 0
+                    jointStateMsg.Position(1) = 0;
+                end
                 self.robot.model.animate(jointStateMsg.Position');
                 drawnow();
             end
+            
+            trajIndexMsg = self.trajIndexSub.LatestMessage;
+            if ~isempty(trajIndexMsg)
+                self.trajIndex = trajIndexMsg.Data;
+            end
+            drawnow();
         end
         
         function startRobotUpdate(self)

@@ -28,7 +28,7 @@ classdef GameController < handle
             
         end
         
-        function endEffVel = GetContollerCommands(self)
+        function eeVel = GetContollerCommands(self)
             
             vx = 0;
             vy = 0;
@@ -36,23 +36,11 @@ classdef GameController < handle
             wx = 0;
             wy = 0;
             wz = 0;
-            [axes, ~, ~] = read(self.joystick);
+            [axes, ~, ~] = read(joy);
             
             if round(axes(4)) == 1
-                vx = self.Kv * axes(1);
-                vy = self.Kv * axes(2);
-                vz = self.Kv * axes(6);
-            
-            elseif round(axes(5)) == 1
-                
-                wx = self.Kw * axes(1);
-                wy = self.Kw * axes(2);
-                wz = self.Kw * axes(6);
                 
             end
-            
-            endEffVel = [vx;vy;vz;wx;wy;wz];
-            
         end
         
         function SetLinVelGain(self, gain)

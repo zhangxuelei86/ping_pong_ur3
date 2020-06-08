@@ -133,29 +133,7 @@ classdef LivePBVSWrapper < handle
                 self.camTrUpdated = true;
             end
         end
-        
-        function qdot = GetQDotFromEEVel(self, eeVel)
-            %GETQDOTFROMEEVEL Gets the joint velocities matrix from the
-            %end-effector's desired velocity, takes maximum joint velocity
-            %into account
-
-            jointConfig = self.rosRW.robot.model.getpos();
-            Jrobot = self.rosRW.robot.model.jacob0(jointConfig);
-            m = sqrt(det(Jrobot*Jrobot'));
-            if m < self.maxManipulability
-                qdot = pinv(Jrobot'*Jrobot + 0.01*eye(7))*Jrobot'*eeVel;
-            else
-                qdot = pinv(Jrobot) * eeVel;
-            end
-
-            % check speed limits
-            max_qdot = max(qdot(2:7));
-            if max_qdot > self.jointSpeedLimit
-                scale = self.jointSpeedLimit / max_qdot;
-                qdot(2:7) = scale*qdot(2:7);
-            end
-        end
-        
+                
         function robotPBVSControl(self)
             %ROBOTPBVSCONTROL When called, control the arm velocity by
             %analysing the camera image, find and estimate the pose of the
@@ -195,7 +173,7 @@ classdef LivePBVSWrapper < handle
                 % end-effector velocity (P controller)
                 eeVel = self.lambda*error;
                 
-                qdot = self.GetQDotFromEEVel(eeVel);
+                qdot = self.GetQDotFromEEVel(self.rosRW.robot,eeVel,self.jointSpeedLimit,self.maxManipulability);
 
                 % jog robot
                 self.rosRW.jogRobot(qdot);
@@ -229,6 +207,44 @@ classdef LivePBVSWrapper < handle
                 self.qrInView = false;
             end
         end
+    end
+    
+    methods (Static)
+        
+        function qdot = GetQDotFromEEVel(robot, eeVel, jointSpeedLimit, maxManipulability)
+            %GETQDOTFROMEEVEL Gets the joint velocities matrix from the
+            %end-effector's desired velocity, takes maximum joint velocity
+            %into account
+            
+            if nargin < 4
+                maxManipulability = 0.1;
+                if nargin < 3
+                    jointSpeedLimit = deg2rad(180);
+                end
+            end
+
+%             jointConfig = self.rosRW.robot.model.getpos();
+%             Jrobot = self.rosRW.robot.model.jacob0(jointConfig);
+            jointConfig = robot.model.getpos();
+            Jrobot = robot.model.jacob0(jointConfig);
+            m = sqrt(det(Jrobot*Jrobot'));
+            if m < maxManipulability
+                qdot = pinv(Jrobot'*Jrobot + 0.01*eye(7))*Jrobot'*eeVel;
+            else
+                qdot = pinv(Jrobot) * eeVel;
+            end
+
+            % check speed limits
+            max_qdot = max(qdot(2:7));
+%             if max_qdot > self.jointSpeedLimit
+            if max_qdot > jointSpeedLimit
+%                 scale = self.jointSpeedLimit / max_qdot;
+                scale = jointSpeedLimit / max_qdot;
+                qdot(2:7) = scale*qdot(2:7);
+            end
+            qdot
+        end
+
     end
 end
 

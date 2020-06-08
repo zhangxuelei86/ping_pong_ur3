@@ -97,6 +97,10 @@ classdef LivePBVSWrapper < handle
             self.qrCornersReal = [realCorner1 realCorner2 realCorner3 realCorner4];
         end
         
+        function status = isQRInView(self)
+            status = self.qrInView;
+        end
+        
         function enableROSUpdate(self, status)
             self.updateFromROS = status;
         end
@@ -223,8 +227,6 @@ classdef LivePBVSWrapper < handle
                 end
             end
 
-%             jointConfig = self.rosRW.robot.model.getpos();
-%             Jrobot = self.rosRW.robot.model.jacob0(jointConfig);
             jointConfig = robot.model.getpos();
             Jrobot = robot.model.jacob0(jointConfig);
             m = sqrt(det(Jrobot*Jrobot'));
@@ -236,13 +238,10 @@ classdef LivePBVSWrapper < handle
 
             % check speed limits
             max_qdot = max(qdot(2:7));
-%             if max_qdot > self.jointSpeedLimit
             if max_qdot > jointSpeedLimit
-%                 scale = self.jointSpeedLimit / max_qdot;
                 scale = jointSpeedLimit / max_qdot;
                 qdot(2:7) = scale*qdot(2:7);
             end
-            qdot
         end
 
     end

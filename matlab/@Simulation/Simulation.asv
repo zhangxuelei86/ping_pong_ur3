@@ -311,14 +311,14 @@ classdef Simulation < handle
                 end
                 
                 % Check if area is free in front of Ultrasonic sensor
-                isFree = self.uSSensor.CheckOcclusion;
+                isFree = self.uSSensor.CheckOcl
                 
                 % Update the sheep model based on Light curtain test mode
                 lightCtnBreach = false;
                 if self.isLightCtnTest
                     lightCtnBreach = self.lightCtn.CheckBreach(self.sheep.pose(1:3,4)');
                 end
-                if lightCtnBreach || ~isFree
+                if lightCtnBreach
                     self.rosRW.eStopRobot(true);
                     continue;
                 end

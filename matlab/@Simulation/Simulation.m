@@ -15,6 +15,12 @@ classdef Simulation < handle
         obsProc;
         pathChkr;
         
+        lightCtn;
+        isLightCtnTest;
+        
+        sheep;
+        sheepDefaultPose;
+        
         gameController;
         joggingVel;
         
@@ -43,13 +49,14 @@ classdef Simulation < handle
             self.currentTraj = [];
             self.trajCalculated = false;
             
+            % sheep poses for Light curtain test
+            self.sheepDefaultPose = transl(0,1.5,0) * trotz(-pi/2);
+            self.isLightCtnTest = false;
+            
             self.ppr = PingPongRobot();
-            self.unityRobotQ = self.ppr.model.getpos();
             
-            self.gameController = GameController(1);
-            
-            planner = PathPlanner(ppr);
-            planner.SetFixedTimeOffset(0.4);
+            self.planner = PathPlanner(self.ppr);
+            self.planner.SetFixedTimeOffset(0.4);
             disp("Created Simulation");
         end
         
@@ -64,7 +71,9 @@ classdef Simulation < handle
             self.rosMasterURI = rosMasterURI;
             self.rosIP = rosIP;
             
-            self.ppr.PlotAndColourRobot();
+            self.ppr.PlotAndColourRobot(); hold on;
+            self.unityRobotQ = self.ppr.model.getpos();
+            
             disp("... Initialising ROSRobotWrapper");
             self.rosRW = ROSRobotWrapper(self.ppr, self.rosMasterURI, self.rosIP);
             disp("... Initialising LivePBVSWrapper");
@@ -84,6 +93,9 @@ classdef Simulation < handle
             self.pathChkr = PathChecker(self.ppr, self.obsProc);
             
             self.initialised = true;
+            self.rosRW.updateRobot();
+            self.SetupLightCurtain();
+            self.SpawnSheep();
             disp("Finished Simulation Initialisation");
         end
         
@@ -106,6 +118,21 @@ classdef Simulation < handle
             disp("ROBOT E-STOPPED - PLEASE RE-INITIALISE");
         end
         
+        function turnOnLightCurtain(self)
+            if ~self.isLightCtnTest
+                self.isLightCtnTest = true;
+                self.lightCtn.PlotSourceRay();
+            end
+        end
+        
+        function addController(self, id)
+            try
+                self.gameController = GameController(id);
+            catch
+                disp("Cannot connect to controller");
+            end
+        end
+        
         function jogUnityRobotJoint(self, qdot)
             %JOGUNITYROBOTJOINT Jogs the robot by joint velocities
             self.rosRW.jogRobot(qdot);
@@ -126,7 +153,11 @@ classdef Simulation < handle
         
         function jogUnityRobotController(self)
             %JOGUNITYROBOTCONTROLLER Jogs the robot by controller input
-            endEffVel = self.gameController.GetContollerCommands()';
+            try
+                endEffVel = self.gameController.GetContollerCommands();
+            catch
+                disp("Game Controller not connected");
+            end
             self.jogUnityRobotEE(endEffVel);
         end
         
@@ -157,10 +188,13 @@ classdef Simulation < handle
             %plays a MATLAB-only animation.
             %   You need to call this function before moving the Unity
             %   Robot in Teach mode
+            self.ppr.model.animate(self.unityRobotQ);
             self.currentTraj = self.planner.FinalJointStatePath(qGoal, isQuintic);
             self.trajCalculated = true;
+            deltaT = self.normalTrajTime/self.trajSteps;
             for i = 1:self.trajSteps
                 self.ppr.model.animate(self.currentTraj(i,:));
+                pause(deltaT);
                 drawnow();
             end
         end
@@ -185,6 +219,12 @@ classdef Simulation < handle
             success = true;
         end
         
+        function q = getUnityRobotQ(self)
+            self.rosRW.updateRobot();
+            self.unityRobotQ = self.ppr.model.getpos();
+            q = self.unityRobotQ;
+        end
+        
         function homeRobot(self)
             %HOMEROBOT Homes the robot
             %   This function is NOT blocking, and it is used in playing
@@ -198,6 +238,10 @@ classdef Simulation < handle
             if ~self.initialised
                 return
             end
+            if ~self.checkCollisions(1) % if a collision can happen
+                return % do not send the traj to robot
+            end
+            self.rosRW.eStopRobot(false);
             deltaT = totalTime / self.trajSteps;
             for i = 1:self.trajSteps-1
                 self.velMatrix(i,:) = (path(i+1,:) - path(i,:))/deltaT;
@@ -213,6 +257,18 @@ classdef Simulation < handle
                 self.rosRW.eStopRobot(true);
                 self.playing = false;
                 pause(0.2);
+            end
+        end
+        
+        function result = checkCollisions(self, index)
+            % Collisions checking
+            self.pathChkr.SetCurrentPath(self.currentTraj);
+            self.pathChkr.SetPathIndex(index);
+            result = self.pathChkr.CheckPath(3);
+            if ~result
+                self.rosRW.eStopRobot(true);
+                self.currentTraj = [];
+                disp("Potential collision detected at index #" + num2str(index));
             end
         end
 
@@ -231,7 +287,7 @@ classdef Simulation < handle
             
             % in case the robot could not hit the ball, wait for this time
             % before homing
-            waitTime = 3.0 / 100000; % 3 seconds
+            waitTime = 2.0 / 100000; % 3 seconds
             
             self.rosRW.eStopRobot(false);
             self.currentTraj = [];
@@ -247,6 +303,16 @@ classdef Simulation < handle
                    continue;
                 end
                 
+                % Update the sheep model based on Light curtain test mode
+                lightCtnBreach = false;
+                if self.isLightCtnTest
+                    lightCtnBreach = self.lightCtn.CheckBreach(self.sheep.pose(1:3,4)');
+                end
+                if lightCtnBreach
+                    self.rosRW.eStopRobot(true);
+                    continue;
+                end
+                
                 % Updates the ball and dynamic obstacles
                 self.rosSW.updateBall();
                 self.rosSW.updateObstacles('dynamic');
@@ -260,14 +326,7 @@ classdef Simulation < handle
                 % if trajectory is finished, no need for checking
                 if ~isempty(self.currentTraj)
                     % Collisions checking
-                    self.pathChkr.SetCurrentPath(self.currentTraj);
-                    self.pathChkr.SetPathIndex(index);
-                    nextJSOk = self.pathChkr.CheckPath();
-                    if ~nextJSOk
-                        self.rosRW.eStopRobot(true);
-                        self.currentTraj = [];
-                        disp("Potential collision detected at index #" + num2str(index));
-                    end
+                    self.checkCollisions(index);
                 end
                 
                 drawnow();
@@ -298,8 +357,23 @@ classdef Simulation < handle
             end
         end
         
+        function SpawnSheep(self)
+            sheepPlyPath = "@EnvironmentComponent/environment_models/sheep.ply";
+            self.sheep = EnvironmentComponent(sheepPlyPath,self.sheepDefaultPose);
+        end
         
+        function UpdateSheep(self, pose)
+            self.sheep.UpdatePose(pose);
+        end
         
+        function SetupLightCurtain(self)
+            base = self.ppr.model.base();
+            sources(1) = struct('origin',[base(1,4)+0.35,base(2,4),0.3],'angDiff',5,'yaw',0);
+            sources(2) = struct('origin',[base(1,4)-1.35,base(2,4),0.3],'angDiff',5,'yaw',180);
+            sources(3) = struct('origin',[base(1,4)-0.4,base(2,4)+0.3,0.3],'angDiff',5,'yaw',90);
+            sources(4) = struct('origin',[base(1,4)-0.4,base(2,4)-0.3,0.3],'angDiff',5,'yaw',270);
+            self.lightCtn = LightCurtain(sources);
+        end
     end
 end
 

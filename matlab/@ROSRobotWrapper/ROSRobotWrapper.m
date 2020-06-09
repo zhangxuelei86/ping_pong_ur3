@@ -44,6 +44,7 @@ classdef ROSRobotWrapper < handle
         
             self.eStopTopic = '/ppr/e_stop';
             self.eStopMsg = rosmessage('std_msgs/Bool');
+            self.eStopPub = rospublisher(self.eStopTopic,'std_msgs/Bool');
             
             self.jointJogTopic = '/ppr/joint_jog';
             self.jointJogMsg = rosmessage('sensor_msgs/JointState');
@@ -60,7 +61,7 @@ classdef ROSRobotWrapper < handle
             self.trajIndex = 0;
             self.trajIndexTopic = '/ppr/traj_index';
             self.trajIndexSub = rossubscriber(self.trajIndexTopic, 'std_msgs/UInt32');
-            
+
             self.originUpdated = false;
             
             self.robotUpdateTimer = timer('StartDelay', 0, 'Period', 0.05, 'TasksToExecute', Inf, 'ExecutionMode', 'fixedDelay');
@@ -117,19 +118,15 @@ classdef ROSRobotWrapper < handle
         function eStopRobot(self, value)
             %ESTOPROBOT Stops, or restarts the robot
             % value = true: stop (e-stop), value = false: resume
-            
-            self.eStopPub = rospublisher(self.eStopTopic,'std_msgs/Bool');
             self.eStopMsg.Data = value;
             send(self.eStopPub, self.eStopMsg); pause(0.1);
-            disp("Sent E-Stop message");
-            try delete(self.eStopPub); end
+            disp("Sent E-Stop message: " + num2str(value));
         end
         
         function jogRobot(self, velocities)
             %JOGROBOT Jogs the robot's joint velocities
             self.jointJogMsg.Velocity = velocities;
             send(self.jointJogPub, self.jointJogMsg);
-            disp("Sent joint jogging message");
         end
     end
     

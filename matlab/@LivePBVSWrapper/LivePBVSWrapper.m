@@ -131,7 +131,7 @@ classdef LivePBVSWrapper < handle
         function updateCamTransform(self)
             %UPDATECAMTRANSFORM Update the camera transform from ROS (does
             %this once only)
-            camTrMsg = receive(self.camTrSub, 1);
+            camTrMsg = self.camTrSub.LatestMessage;
             if ~isempty(camTrMsg)
                 self.camTransform = ROSRobotWrapper.PoseStampedToTransform(camTrMsg);
                 self.camTrUpdated = true;
@@ -150,7 +150,7 @@ classdef LivePBVSWrapper < handle
                     self.updateCamTransform();
                 end
                 
-                camImgMsg = receive(self.camImgSub, 1);
+                camImgMsg = self.camImgSub.LatestMessage;
                 camImgMsg.Format = 'bgr8; jpeg compressed bgr8';
                 if ~isempty(camImgMsg)
                     self.camImg = readImage(camImgMsg);

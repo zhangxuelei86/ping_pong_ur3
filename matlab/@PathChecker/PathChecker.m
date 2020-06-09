@@ -37,37 +37,40 @@ classdef PathChecker < handle
         end
         
         %% CheckPath
-        function isNextJSOk = CheckPath(self)
+        function isNextJSOk = CheckPath(self, offset)
+            if self.pathIndex+offset >= length(self.currentPath)
+                offset = length(self.currentPath) - self.pathIndex;
+            end
+            
+            for offsetIndex = 0:offset
+                q = self.currentPath(self.pathIndex+offsetIndex,:);
+          
+                tr = self.robot.GetRobotLinksTransforms(q);
+                staticObstacles = self.obstaclesProcessor.staticObstacles;
+                dynamicObstacles = self.obstaclesProcessor.dynamicObstacles;
+                obstacles = [staticObstacles(:)',dynamicObstacles(:)'];
 
-            q = self.currentPath(self.pathIndex+1,:);
-            tr = self.robot.GetRobotLinksTransforms(q);
-            staticObstacles = self.obstaclesProcessor.staticObstacles;
-            dynamicObstacles = self.obstaclesProcessor.dynamicObstacles;
-            obstacles = [staticObstacles(:)',dynamicObstacles(:)'];
-
-            % Go through each link and check for collision
-            for i = 2 : size(tr,3)-1
-                % Go through each obstacle in the simulation
-                for j = 1:size(obstacles,2)
-                    % Go through each face of the rectangular prism
-                    % obstacle
-                    for faceIndex = 1:size(obstacles{j}.obstacle.faces,1)
-                        vertOnPlane = obstacles{j}.obstacle.vertices(obstacles{j}.obstacle.faces(faceIndex,1)',:);
-                        [intersectionPoint,check] = self.LinePlaneIntersection(obstacles{j}.obstacle.faceNormals(faceIndex,:),vertOnPlane,tr(1:3,4,i)',tr(1:3,4,i+1)');
-                        % Check if the line intersects with the plane on
-                        % the size and if it lies inside the triangle on
-                        % that rectangular prism side
-                        if (check == 1 && self.IsIntersectionPointInsideTriangle(intersectionPoint,obstacles{j}.obstacle.vertices(obstacles{j}.obstacle.faces(faceIndex,:)',:)))
-                            disp('Intersection');
-
-                            isNextJSOk = false;
-                            return
-
+                % Go through each link and check for collision
+                for i = 2 : size(tr,3)-1
+                    % Go through each obstacle in the simulation
+                    for j = 1:size(obstacles,2)
+                        % Go through each face of the rectangular prism
+                        % obstacle
+                        for faceIndex = 1:size(obstacles{j}.obstacle.faces,1)
+                            vertOnPlane = obstacles{j}.obstacle.vertices(obstacles{j}.obstacle.faces(faceIndex,1)',:);
+                            [intersectionPoint,check] = self.LinePlaneIntersection(obstacles{j}.obstacle.faceNormals(faceIndex,:),vertOnPlane,tr(1:3,4,i)',tr(1:3,4,i+1)');
+                            % Check if the line intersects with the plane on
+                            % the size and if it lies inside the triangle on
+                            % that rectangular prism side
+                            if (check == 1 && self.IsIntersectionPointInsideTriangle(intersectionPoint,obstacles{j}.obstacle.vertices(obstacles{j}.obstacle.faces(faceIndex,:)',:)))
+                                disp('Intersection');
+                                isNextJSOk = false;
+                                return
+                            end
                         end
                     end
                 end
-            end
-            
+            end  
             isNextJSOk = true;
             
         end

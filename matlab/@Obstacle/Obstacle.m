@@ -11,7 +11,7 @@ classdef Obstacle < handle
         % size is a row vector of the [length width height] of the
         % rectangular prism obstacle
         size;
-        sizeInflationFactor = 0.1;
+        sizeInflationFactor = 0.06;
         
         obstaclePlot;
         plotTransparency = 0.7;

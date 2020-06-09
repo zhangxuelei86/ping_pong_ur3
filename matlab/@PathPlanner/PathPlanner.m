@@ -199,11 +199,10 @@ classdef PathPlanner < handle
                 startPt = ballPosition + ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
                 endPt = ballPosition - ballVelocity/normBallVel*(1-normBallVel/10)*0.1;
 
-                deltaAng = pi/36;
                 s = lspb(0,1,steps);                                 % Create interpolation scalar
                 for i = 1:steps
                     x(1:2,i) = startPt(1:2)*(1-s(i)) + s(i)*endPt(1:2);
-                    x(3,i) = ballPosition(3) - 0.025 * cos(i*deltaAng);
+                    x(3,i) = ballPosition(3);
                 end
                 
                 % Test for changing orientation of endEff to match ball

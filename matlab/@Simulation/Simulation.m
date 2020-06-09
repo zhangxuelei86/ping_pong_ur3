@@ -21,8 +21,6 @@ classdef Simulation < handle
         sheep;
         sheepDefaultPose;
         
-        uSSensor;
-        
         gameController;
         joggingVel;
         
@@ -54,7 +52,7 @@ classdef Simulation < handle
             % sheep poses for Light curtain test
             self.sheepDefaultPose = transl(0,1.5,0) * trotz(-pi/2);
             self.isLightCtnTest = false;
-                        
+            
             self.ppr = PingPongRobot();
             
             self.planner = PathPlanner(self.ppr);
@@ -93,11 +91,6 @@ classdef Simulation < handle
             self.obsProc = ObstaclesProcessor(staticObstacles);
             disp("... Initialising PathChecker");
             self.pathChkr = PathChecker(self.ppr, self.obsProc);
-            
-            disp("...Initialising Ultrasonic sensor");
-            self.uSSensor = UltrasonicSensor("COM4");
-            self.uSSensor.Init();
-            self.uSSensor.SetThreshold(0.5);
             
             self.initialised = true;
             self.rosRW.updateRobot();
@@ -310,15 +303,12 @@ classdef Simulation < handle
                    continue;
                 end
                 
-                % Check if area is free in front of Ultrasonic sensor
-                isFree = self.uSSensor.CheckOcclusion;
-                
                 % Update the sheep model based on Light curtain test mode
                 lightCtnBreach = false;
                 if self.isLightCtnTest
                     lightCtnBreach = self.lightCtn.CheckBreach(self.sheep.pose(1:3,4)');
                 end
-                if lightCtnBreach || ~isFree
+                if lightCtnBreach
                     self.rosRW.eStopRobot(true);
                     continue;
                 end

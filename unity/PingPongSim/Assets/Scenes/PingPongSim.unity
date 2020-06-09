@@ -5965,6 +5965,7 @@ GameObject:
   - component: {fileID: 1543648089}
   - component: {fileID: 1543648088}
   - component: {fileID: 1543648091}
+  - component: {fileID: 1543648092}
   m_Layer: 10
   m_Name: Plane
   m_TagString: Untagged
@@ -5994,7 +5995,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1543648086}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 2, y: 1.75, z: 1.75}
@@ -6061,6 +6062,22 @@ MonoBehaviour:
   m_snapOrientation: 0
   m_snapOffset: {fileID: 0}
   m_grabPoints: []
+--- !u!54 &1543648092
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1543648086}
+  serializedVersion: 2
+  m_Mass: 0.25
+  m_Drag: 0.5
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1548957174
 GameObject:
   m_ObjectHideFlags: 0

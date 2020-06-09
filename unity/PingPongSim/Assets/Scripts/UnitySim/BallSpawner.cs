@@ -17,7 +17,7 @@ public class BallSpawner : MonoBehaviour
 
     void Update()
     {
-        isButtonPressed = Input.GetKeyDown("space");
+        isButtonPressed = Input.GetKeyDown("b");
     }
 
     private void FixedUpdate()

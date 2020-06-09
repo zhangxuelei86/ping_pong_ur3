@@ -20,7 +20,6 @@ classdef Simulation < handle
         
         sheep;
         sheepDefaultPose;
-        sheepTestPose;
         
         gameController;
         joggingVel;
@@ -50,7 +49,8 @@ classdef Simulation < handle
             self.currentTraj = [];
             self.trajCalculated = false;
             
-            self.sheepDefaultPose = transl(-0.5,0,0) * trotz(-pi/2);
+            % sheep poses for Light curtain test
+            self.sheepDefaultPose = transl(0,1.5,0) * trotz(-pi/2);
             self.isLightCtnTest = false;
             
             self.ppr = PingPongRobot();
@@ -76,29 +76,26 @@ classdef Simulation < handle
             
             disp("... Initialising ROSRobotWrapper");
             self.rosRW = ROSRobotWrapper(self.ppr, self.rosMasterURI, self.rosIP);
-            pause(2.0);
             disp("... Initialising LivePBVSWrapper");
             self.pbvsRW = LivePBVSWrapper(self.rosRW);
             self.pbvsRW.init(0.03, [480 360]);
             self.pbvsRW.enableROSUpdate(true);
-            pause(2.0);
             disp("... Initialising ROSTrajectoryPublisher");
             self.rosTP = ROSTrajectoryPublisher();
             self.rosTP.InitPublisher(self.trajSteps);
-            pause(1.0);
             disp("... Initialising ROSSimWrapper");
             self.rosSW = ROSSimWrapper(self.ppr);
-            pause(1.0);
             disp("... Initialising ObstaclesProcessor - Static");
             self.rosSW.updateObstacles('static');
             staticObstacles = self.rosSW.getObstacles('static');
             self.obsProc = ObstaclesProcessor(staticObstacles);
-            pause(1.0);
             disp("... Initialising PathChecker");
             self.pathChkr = PathChecker(self.ppr, self.obsProc);
             
             self.initialised = true;
             self.rosRW.updateRobot();
+            self.SetupLightCurtain();
+            self.SpawnSheep();
             disp("Finished Simulation Initialisation");
         end
         
@@ -119,6 +116,13 @@ classdef Simulation < handle
             self.stopPlaying();
             self.initialised = false;
             disp("ROBOT E-STOPPED - PLEASE RE-INITIALISE");
+        end
+        
+        function turnOnLightCurtain(self)
+            if ~self.isLightCtnTest
+                self.isLightCtnTest = true;
+                self.lightCtn.PlotSourceRay();
+            end
         end
         
         function addController(self, id)
@@ -234,6 +238,9 @@ classdef Simulation < handle
             if ~self.initialised
                 return
             end
+            if ~self.checkCollisions(1) % if a collision can happen
+                return % do not send the traj to robot
+            end
             self.rosRW.eStopRobot(false);
             deltaT = totalTime / self.trajSteps;
             for i = 1:self.trajSteps-1
@@ -252,6 +259,18 @@ classdef Simulation < handle
                 pause(0.2);
             end
         end
+        
+        function result = checkCollisions(self, index)
+            % Collisions checking
+            self.pathChkr.SetCurrentPath(self.currentTraj);
+            self.pathChkr.SetPathIndex(index);
+            result = self.pathChkr.CheckPath(3);
+            if ~result
+                self.rosRW.eStopRobot(true);
+                self.currentTraj = [];
+                disp("Potential collision detected at index #" + num2str(index));
+            end
+        end
 
         function startPlaying(self)
             %STARTPLAYING Main loop that plays ping pong
@@ -268,11 +287,7 @@ classdef Simulation < handle
             
             % in case the robot could not hit the ball, wait for this time
             % before homing
-            waitTime = 3.0 / 100000; % 3 seconds
-            
-            % sheep pose for Light curtain test
-            self.sheepTestPose = transl(1,-1.5,0) * trotz(-pi/4);
-            self.SetupLightCurtain();
+            waitTime = 2.0 / 100000; % 3 seconds
             
             self.rosRW.eStopRobot(false);
             self.currentTraj = [];
@@ -291,11 +306,11 @@ classdef Simulation < handle
                 % Update the sheep model based on Light curtain test mode
                 lightCtnBreach = false;
                 if self.isLightCtnTest
-                    self.UpdateSheep(self.sheepTestPose);
-                    self.lightCtn.PlotSourceRay();
-                    lightCtnBreach = self.lightCtn.CheckBreach(self.sheepTestPose(1:3,4)');
-                else
-                    self.UpdateSheep(self.sheepDefaultPose);
+                    lightCtnBreach = self.lightCtn.CheckBreach(self.sheep.pose(1:3,4)');
+                end
+                if lightCtnBreach
+                    self.rosRW.eStopRobot(true);
+                    continue;
                 end
                 
                 % Updates the ball and dynamic obstacles
@@ -311,14 +326,7 @@ classdef Simulation < handle
                 % if trajectory is finished, no need for checking
                 if ~isempty(self.currentTraj)
                     % Collisions checking
-                    self.pathChkr.SetCurrentPath(self.currentTraj);
-                    self.pathChkr.SetPathIndex(index);
-                    nextJSOk = self.pathChkr.CheckPath();
-                    if ~nextJSOk || lightCtnBreach
-                        self.rosRW.eStopRobot(true);
-                        self.currentTraj = [];
-                        disp("Potential collision detected at index #" + num2str(index));
-                    end
+                    self.checkCollisions(index);
                 end
                 
                 drawnow();
@@ -359,18 +367,13 @@ classdef Simulation < handle
         end
         
         function SetupLightCurtain(self)
-            
             base = self.ppr.model.base();
-            
-            sources(1) = struct('origin',[base(1,4)+0.35,base(2,4),0.25],'angDiff',5,'yaw',0);
-            sources(2) = struct('origin',[base(1,4)-0.35,base(2,4),0.25],'angDiff',5,'yaw',180);
-            sources(3) = struct('origin',[base(1,4),base(2,4)+0.25,0.25],'angDiff',5,'yaw',90);
-            sources(4) = struct('origin',[base(1,4),base(2,4)-0.25,0.25],'angDiff',5,'yaw',270);
-            
+            sources(1) = struct('origin',[base(1,4)+0.35,base(2,4),0.3],'angDiff',5,'yaw',0);
+            sources(2) = struct('origin',[base(1,4)-1.35,base(2,4),0.3],'angDiff',5,'yaw',180);
+            sources(3) = struct('origin',[base(1,4)-0.4,base(2,4)+0.3,0.3],'angDiff',5,'yaw',90);
+            sources(4) = struct('origin',[base(1,4)-0.4,base(2,4)-0.3,0.3],'angDiff',5,'yaw',270);
             self.lightCtn = LightCurtain(sources);
-            
         end
-        
     end
 end
 

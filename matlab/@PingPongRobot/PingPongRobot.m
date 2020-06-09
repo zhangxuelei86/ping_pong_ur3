@@ -12,7 +12,7 @@ classdef PingPongRobot < handle
         paddle;
         
         %< Robot workspace
-        workspace = [-1 1 -2 2 0 3];
+        workspace = [-1.5 1.5 -2.5 2 0 3];
 
         qHome = [-0.4000 0 -1.0396 1.7544 -2.2689 -1.5708 0];
     end

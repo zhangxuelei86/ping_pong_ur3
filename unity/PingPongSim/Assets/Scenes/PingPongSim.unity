@@ -961,14 +961,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
-    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
     - target: {fileID: 100008, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -998,6 +990,14 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 100022, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
@@ -1689,14 +1689,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
-    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
-    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
-      propertyPath: m_Layer
-      value: 9
-      objectReference: {fileID: 0}
     - target: {fileID: 100008, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
@@ -1726,6 +1718,14 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 100022, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 2fa377e4cd26791478391ecf0a8fc33a, type: 3}
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
@@ -5533,7 +5533,7 @@ MonoBehaviour:
   SecondsTimeout: 10
   Serializer: 0
   protocol: 1
-  RosBridgeServerUrl: ws://10.42.0.1:9090
+  RosBridgeServerUrl: ws://192.168.1.20:9090
 --- !u!114 &1567514503
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6799,6 +6799,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1937246852}
+  - component: {fileID: 1937246853}
   m_Layer: 10
   m_Name: QRCode
   m_TagString: Untagged
@@ -6821,6 +6822,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1937246853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1937246851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 157d22cfc7743d341b80fdf3e6a00c0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MovingObject: {fileID: 1937246851}
+  speed: 0.5
+  rotateSpeed: 10
 --- !u!1 &1942524117
 GameObject:
   m_ObjectHideFlags: 8

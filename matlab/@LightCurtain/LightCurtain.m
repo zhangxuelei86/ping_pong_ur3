@@ -4,7 +4,7 @@ classdef LightCurtain < handle
     properties
          sources = []; % total number of sources of the light curtains for one object
          
-         maxDistance = 0.5; % maximum allowable distance from the light curtain
+         maxDistance = 1.0; % maximum allowable distance from the light curtain
     end
     
     methods

@@ -36,7 +36,7 @@ public class PPBall : MonoBehaviour
     {
         if (collision.gameObject.tag == "player_paddle")
         {
-            debounceTime = 0.1f;
+            debounceTime = 0.06f;
             setState(1);
         }
         else if (collision.gameObject.tag == "table")
@@ -46,7 +46,7 @@ public class PPBall : MonoBehaviour
         }
         else if (collision.gameObject.tag == "robot_paddle")
         {
-            debounceTime = 0.5f;
+            debounceTime = 0.06f;
             setState(3);
         }
     }
